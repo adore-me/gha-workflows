@@ -99,7 +99,7 @@ jobs:
 
   create_release:
     name: 'Create release'
-    needs: [push_main_image]
+    needs: [prepare_tags, push_main_image]
     runs-on: ubuntu-latest
     steps:
     - name: 'Checkout'
