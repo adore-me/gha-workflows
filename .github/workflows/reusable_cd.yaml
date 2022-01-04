@@ -9,10 +9,14 @@ on:
         required: false
         type: boolean
     secrets:
-      QUAY_USER: ${{ secrets.QUAY_USER }}
-      QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-      GCR_CREDENTIALS: ${{ secrets.GCR_CREDENTIALS }}
-      PROD_GCP_PROJECT_ID: ${{ secrets.PROD_GCP_PROJECT_ID }}
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      GCR_CREDENTIALS:
+        required: true
+      PROD_GCP_PROJECT_ID:
+        required: true
 
 jobs:
   prepare_tags:
