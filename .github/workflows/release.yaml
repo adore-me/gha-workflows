@@ -1,0 +1,23 @@
+name: 'Release'
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - '.github/workflows/release.yaml'
+
+jobs:
+  release-on-push:
+    name: 'Release new version'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: 'Create release'
+        uses: rymndhng/release-on-push-action@v0.22.0
+        with:
+          bump_version_scheme: patch
+          tag_prefix: v

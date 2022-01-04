@@ -1,0 +1,104 @@
+name: 'Reusable continuous deployment workflow'
+
+on:
+  workflow_call:
+    inputs:
+      backup:
+        description: 'Push image to backup registry'
+        default: true
+        required: false
+        type: boolean
+
+jobs:
+  prepare_tags:
+    name: 'Setup tags'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: 'Setup tags'
+        id: tags
+        run: |
+          TAG=$(git describe --abbrev=0)
+          IMAGE="quay.io/adoreme/${{ github.event.repository.name }}"
+          IMAGE_BACKUP="us.gcr.io/${{ secrets.PROD_GCP_PROJECT_ID }}/${{ github.event.repository.name }}"
+          echo ::set-output name=tag::${TAG}
+          echo ::set-output name=rc_tag::${IMAGE}:rc-${TAG}
+          echo ::set-output name=prod_tag::${IMAGE}:prod-${TAG}
+          echo ::set-output name=prod_tag_backup::${IMAGE_BACKUP}:prod-${TAG}
+
+    outputs:
+      tag: ${{ steps.tags.outputs.tag }}
+      rc_tag: ${{ steps.tags.outputs.rc_tag }}
+      prod_tag: ${{ steps.tags.outputs.prod_tag }}
+      prod_tag_backup: ${{ steps.tags.outputs.prod_tag_backup }}
+
+  push_main_image:
+    name: 'Push main image'
+    needs: [prepare_tags]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Login Docker registry (Quay)'
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USER }} # Use org secrets for this
+          password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
+
+      - name: 'Pull rc Docker image'
+        run: docker pull ${{ needs.prepare_tags.outputs.rc_tag }}
+
+      - name: 'Tag prod Docker image'
+        run: docker tag ${{ needs.prepare_tags.outputs.rc_tag }} ${{ needs.prepare_tags.outputs.prod_tag }}
+
+      - name: 'Push prod Docker image'
+        run: docker push ${{ needs.prepare_tags.outputs.prod_tag }}
+
+      # Flux should continue from here
+
+  push_backup_image:
+    name: 'Push backup image'
+    needs: [prepare_tags]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Login Docker registry (Quay)'
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USER }} # Use org secrets for this
+          password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
+
+      - name: 'Pull rc Docker image'
+        run: docker pull ${{ needs.prepare_tags.outputs.rc_tag }}
+
+      - name: 'Login backup Docker registry (GCR)'
+        if: always() && ${{ inputs.backup }}
+        uses: docker/login-action@v1
+        with:
+          registry: us.gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_CREDENTIALS }}
+
+      - name: 'Tag prod backup Docker image'
+        if: always() && ${{ inputs.backup }}
+        run: docker tag ${{ needs.prepare_tags.outputs.rc_tag }} ${{ needs.prepare_tags.outputs.prod_tag_backup }}
+
+      - name: 'Push prod Docker image to backup registry'
+        if: always() && ${{ inputs.backup }}
+        run: docker push ${{ needs.prepare_tags.outputs.prod_tag_backup }}
+
+  create_release:
+    name: 'Create release'
+    needs: [push_main_image]
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Create release'
+      uses: ncipollo/release-action@v1.8.10
+      with:
+        tag: ${{ needs.prepare_tags.outputs.tag }}
+        name: v${{ needs.prepare_tags.outputs.tag }}
+        body: "Released `v${{ needs.prepare_tags.outputs.tag }}` with image tag `prod-${{ needs.prepare_tags.outputs.tag }}`"
+        token: ${{ secrets.GITHUB_TOKEN }}
