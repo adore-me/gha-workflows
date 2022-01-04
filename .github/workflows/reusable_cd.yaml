@@ -62,6 +62,7 @@ jobs:
   push_backup_image:
     name: 'Push backup image'
     needs: [prepare_tags]
+    if: ${{ inputs.backup }}
     runs-on: ubuntu-latest
     steps:
       - name: 'Login Docker registry (Quay)'
@@ -74,8 +75,7 @@ jobs:
       - name: 'Pull rc Docker image'
         run: docker pull ${{ needs.prepare_tags.outputs.rc_tag }}
 
-      - name: 'Login backup Docker registry (GCR)'
-        if: always() && ${{ inputs.backup }}
+      - name: 'Login backup Docker registry (GCR)'}
         uses: docker/login-action@v1
         with:
           registry: us.gcr.io
@@ -83,11 +83,9 @@ jobs:
           password: ${{ secrets.GCR_CREDENTIALS }}
 
       - name: 'Tag prod backup Docker image'
-        if: always() && ${{ inputs.backup }}
         run: docker tag ${{ needs.prepare_tags.outputs.rc_tag }} ${{ needs.prepare_tags.outputs.prod_tag_backup }}
 
       - name: 'Push prod Docker image to backup registry'
-        if: always() && ${{ inputs.backup }}
         run: docker push ${{ needs.prepare_tags.outputs.prod_tag_backup }}
 
   create_release:
