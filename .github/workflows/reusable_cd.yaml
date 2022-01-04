@@ -8,6 +8,11 @@ on:
         default: true
         required: false
         type: boolean
+    secrets:
+      QUAY_USERNAME: ${{ secrets.QUAY_USER }}
+      QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+      GCR_CREDENTIALS: ${{ secrets.GCR_CREDENTIALS }}
+      PROD_GCP_PROJECT_ID: ${{ secrets.PROD_GCP_PROJECT_ID }}
 
 jobs:
   prepare_tags:
