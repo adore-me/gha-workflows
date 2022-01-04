@@ -46,7 +46,7 @@ jobs:
       prod_tag_backup: ${{ steps.tags.outputs.prod_tag_backup }}
 
   push_main_image:
-    name: 'Push main image'
+    name: 'Push main image (Quay)'
     needs: [prepare_tags]
     runs-on: ubuntu-latest
     steps:
@@ -69,7 +69,7 @@ jobs:
       # Flux should continue from here
 
   push_backup_image:
-    name: 'Push backup image'
+    name: 'Push backup image (GCR)'
     needs: [prepare_tags]
     if: ${{ inputs.backup }}
     runs-on: ubuntu-latest
@@ -102,6 +102,10 @@ jobs:
     needs: [push_main_image]
     runs-on: ubuntu-latest
     steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: 'Create release'
       uses: ncipollo/release-action@v1.8.10
       with:
