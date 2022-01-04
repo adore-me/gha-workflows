@@ -11,7 +11,7 @@ on:
       prod_gcp_project_id:
         description: 'GCP project ID for production'
         required: true
-        type: boolean
+        type: string
     secrets:
       QUAY_USER:
         required: true
