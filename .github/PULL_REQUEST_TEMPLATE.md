@@ -1,4 +1,4 @@
-### NOTES:
+**NOTES:**
 
 - after merge a version bump will occur and a new release will be created.
 - version bump will only apply if you modify the `.github/workflows` directory (except `release.yaml`).
