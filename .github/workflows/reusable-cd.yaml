@@ -109,3 +109,4 @@ jobs:
         name: v${{ needs.prepare-tags.outputs.tag }}
         body: "Released `v${{ needs.prepare-tags.outputs.tag }}` with image tag `prod-${{ needs.prepare-tags.outputs.tag }}`"
         token: ${{ secrets.GITHUB_TOKEN }}
+        generateReleaseNotes: true
