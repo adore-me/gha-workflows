@@ -35,7 +35,7 @@ jobs:
         run: |
           TAG=$(git describe --abbrev=0)
           IMAGE="quay.io/adoreme/${{ github.event.repository.name }}"
-          IMAGE_BACKUP="us.gcr.io/${{ inputs.prod_gcp_project_id }}/${{ github.event.repository.name }}"
+          IMAGE_BACKUP="us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}"
           echo ::set-output name=tag::${TAG}
           echo ::set-output name=rc-tag::${IMAGE}:rc-${TAG}
           echo ::set-output name=prod-tag::${IMAGE}:prod-${TAG}
