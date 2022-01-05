@@ -57,5 +57,18 @@ This workflow should be used to promote an `rc` image to a `prod` image.
   - `type`: **string**
   - `default`: **none**
   - `required`: **true**
+#### Jobs
+- `setup-tags`: Based on the last tag found on repo will construct and output a list of tags to be used in the next jobs.
+  - `outputs`:
+    - `tag`
+    - `rc-tag`
+    - `prod-tag`
+    - `prod-tag-backup`
+- `push-main-image`: Tag and push the `prod` image to the Quay registry.
+  - depends on `setup-tags`
+- `push-backup-image`: Tag and push the `prod` image to the backup registry (GCR for now).
+  - depends on `setup-tags`
+- `create-release`: Create a release in GitHub.
+  - depends on `setup-tags` and `push-main-image`
 
 ### Maybe more to come...
