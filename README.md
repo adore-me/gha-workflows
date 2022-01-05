@@ -24,9 +24,9 @@ jobs:
       backup: true
       prod_gcp_project_id: SOME_PROJECT_ID
     secrets:
-      QUAY_USER: ${{ secrets.QUAY_USER }}
-      QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-      GCR_CREDENTIALS: ${{ secrets.GCR_CREDENTIALS }}
+      QUAY_USER: ${{ QUAY_USER }}
+      QUAY_PASSWORD: ${{ QUAY_PASSWORD }}
+      GCR_CREDENTIALS: ${{ GCR_CREDENTIALS }}
 ```
 
 ## 📖 Contents
