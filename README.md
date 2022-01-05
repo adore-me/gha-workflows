@@ -1,5 +1,4 @@
-# gha-workflows
-GitHub Actions reusable workflows repository
+# AdoreMe GitHub Actions reusable workflows
 
 ## ❓ What is it?
 This repository contains reusable workflows for GitHub Actions. 
