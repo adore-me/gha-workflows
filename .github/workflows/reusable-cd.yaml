@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       backup:
-        description: 'Push image to backup registry'
+        description: 'Push image to backup'
         default: true
         required: false
         type: boolean
