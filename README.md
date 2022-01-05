@@ -2,7 +2,9 @@
 GitHub Actions reusable workflows repository
 
 ##❔ What is it?
-This repository contains reusable workflows for GitHub Actions.
+This repository contains reusable workflows for GitHub Actions. 
+
+If you want to find more about this you can check GitHub Actions [documentation](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
 
 It's scope is to make it easier to create and share workflows by avoiding the need to write the same code over and over again in different app repositories.
 
