@@ -22,7 +22,7 @@ jobs:
     uses: adore-me/gha-workflows/.github/workflows/reusable_cd.yaml@v0.0.12 # <-- Import the reusable workflow
     with:
       backup: true
-      prod_gcp_project_id: am-production-268015
+      prod_gcp_project_id: SOME_PROJECT_ID
     secrets:
       QUAY_USER: ${{ secrets.QUAY_USER }}
       QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
