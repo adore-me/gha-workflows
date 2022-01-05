@@ -1,7 +1,7 @@
 # gha-workflows
 GitHub Actions reusable workflows repository
 
-##❔ What is it?
+## ❓ What is it?
 This repository contains reusable workflows for GitHub Actions. 
 
 If you want to find more about this you can check GitHub Actions [documentation](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
