@@ -1,0 +1,3 @@
+/.github/workflows/reusable-cd.yaml @adore-me/core-team
+/.github/workflows/release.yaml @adore-me/core-team
+/.github/PULL_REQUEST_TEMPLATE.md @adore-me/core-team
