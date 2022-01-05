@@ -19,6 +19,6 @@ jobs:
       - name: 'Create release'
         uses: rymndhng/release-on-push-action@v0.22.0
         with:
-          use-github-release-notes: true
+          use_github_release_notes: true
           bump_version_scheme: patch
           tag_prefix: v
