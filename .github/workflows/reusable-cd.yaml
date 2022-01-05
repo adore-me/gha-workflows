@@ -8,7 +8,7 @@ on:
         default: true
         required: false
         type: boolean
-      prod_gcp_project_id:
+      prod-gcp-project-id:
         description: 'GCP project ID for production'
         required: true
         type: string
@@ -21,7 +21,7 @@ on:
         required: true
 
 jobs:
-  prepare_tags:
+  prepare-tags:
     name: 'Setup tags'
     runs-on: ubuntu-latest
     steps:
@@ -30,26 +30,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 'Setup tags'
+      - name: 'Output tags'
         id: tags
         run: |
           TAG=$(git describe --abbrev=0)
           IMAGE="quay.io/adoreme/${{ github.event.repository.name }}"
           IMAGE_BACKUP="us.gcr.io/${{ inputs.prod_gcp_project_id }}/${{ github.event.repository.name }}"
           echo ::set-output name=tag::${TAG}
-          echo ::set-output name=rc_tag::${IMAGE}:rc-${TAG}
-          echo ::set-output name=prod_tag::${IMAGE}:prod-${TAG}
-          echo ::set-output name=prod_tag_backup::${IMAGE_BACKUP}:prod-${TAG}
+          echo ::set-output name=rc-tag::${IMAGE}:rc-${TAG}
+          echo ::set-output name=prod-tag::${IMAGE}:prod-${TAG}
+          echo ::set-output name=prod-tag-backup::${IMAGE_BACKUP}:prod-${TAG}
 
     outputs:
       tag: ${{ steps.tags.outputs.tag }}
-      rc_tag: ${{ steps.tags.outputs.rc_tag }}
-      prod_tag: ${{ steps.tags.outputs.prod_tag }}
-      prod_tag_backup: ${{ steps.tags.outputs.prod_tag_backup }}
+      rc-tag: ${{ steps.tags.outputs.rc-tag }}
+      prod-tag: ${{ steps.tags.outputs.prod-tag }}
+      prod-tag-backup: ${{ steps.tags.outputs.prod-tag-backup }}
 
-  push_main_image:
+  push-main-image:
     name: 'Push main image (Quay)'
-    needs: [prepare_tags]
+    needs: [prepare-tags]
     runs-on: ubuntu-latest
     steps:
       - name: 'Login Docker registry (Quay)'
@@ -60,19 +60,17 @@ jobs:
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
 
       - name: 'Pull rc Docker image'
-        run: docker pull ${{ needs.prepare_tags.outputs.rc_tag }}
+        run: docker pull ${{ needs.prepare-tags.outputs.rc-tag }}
 
       - name: 'Tag prod Docker image'
-        run: docker tag ${{ needs.prepare_tags.outputs.rc_tag }} ${{ needs.prepare_tags.outputs.prod_tag }}
+        run: docker tag ${{ needs.prepare-tags.outputs.rc-tag }} ${{ needs.prepare-tags.outputs.prod-tag }}
 
       - name: 'Push prod Docker image'
-        run: docker push ${{ needs.prepare_tags.outputs.prod_tag }}
+        run: docker push ${{ needs.prepare-tags.outputs.prod-tag }}
 
-      # Flux should continue from here
-
-  push_backup_image:
+  push-backup-image:
     name: 'Push backup image (GCR)'
-    needs: [prepare_tags]
+    needs: [prepare-tags]
     if: ${{ inputs.backup }}
     runs-on: ubuntu-latest
     steps:
@@ -84,7 +82,7 @@ jobs:
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
 
       - name: 'Pull rc Docker image'
-        run: docker pull ${{ needs.prepare_tags.outputs.rc_tag }}
+        run: docker pull ${{ needs.prepare-tags.outputs.rc-tag }}
 
       - name: 'Login backup Docker registry (GCR)'
         uses: docker/login-action@v1
@@ -94,20 +92,20 @@ jobs:
           password: ${{ secrets.GCR_CREDENTIALS }}
 
       - name: 'Tag prod backup Docker image'
-        run: docker tag ${{ needs.prepare_tags.outputs.rc_tag }} ${{ needs.prepare_tags.outputs.prod_tag_backup }}
+        run: docker tag ${{ needs.prepare-tags.outputs.rc-tag }} ${{ needs.prepare-tags.outputs.prod-tag-backup }}
 
       - name: 'Push prod Docker image to backup registry'
-        run: docker push ${{ needs.prepare_tags.outputs.prod_tag_backup }}
+        run: docker push ${{ needs.prepare-tags.outputs.prod-tag-backup }}
 
-  create_release:
+  create-release:
     name: 'Create release'
-    needs: [prepare_tags, push_main_image]
+    needs: [prepare-tags, push-main-image]
     runs-on: ubuntu-latest
     steps:
     - name: 'Create release'
       uses: ncipollo/release-action@v1.8.10
       with:
-        tag: ${{ needs.prepare_tags.outputs.tag }}
-        name: v${{ needs.prepare_tags.outputs.tag }}
-        body: "Released `v${{ needs.prepare_tags.outputs.tag }}` with image tag `prod-${{ needs.prepare_tags.outputs.tag }}`"
+        tag: ${{ needs.prepare-tags.outputs.tag }}
+        name: v${{ needs.prepare-tags.outputs.tag }}
+        body: "Released `v${{ needs.prepare-tags.outputs.tag }}` with image tag `prod-${{ needs.prepare-tags.outputs.tag }}`"
         token: ${{ secrets.GITHUB_TOKEN }}
