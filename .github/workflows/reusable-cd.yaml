@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 'Create release'
-      uses: ncipollo/release-action@v1.8.10
+      uses: ncipollo/release-action@v1.9.0
       with:
         tag: ${{ needs.prepare-tags.outputs.tag }}
         name: v${{ needs.prepare-tags.outputs.tag }}
