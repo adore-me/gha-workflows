@@ -44,7 +44,7 @@ This workflow should be used to promote an `rc` image to a `prod` image.
   - `type`: **string**
   - `default`: **none**
   - `required`: **true**
-##### Secrets:
+#### Secrets:
 - `QUAY_USER`: The username to use when authenticating with the Quay registry.
   - `type`: **string**
   - `default`: **none**
