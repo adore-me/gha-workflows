@@ -1,4 +1,4 @@
-name: 'Reusable continuous deployment workflow'
+name: 'Reusable continuous deployment workflow (promote to prod)'
 
 on:
   workflow_call:
