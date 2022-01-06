@@ -18,7 +18,7 @@ on:
       - '...'
 jobs:
   cd:
-    uses: adore-me/gha-workflows/.github/workflows/reusable-cd.yaml@v0.0.12 # <-- Import the reusable workflow
+    uses: adore-me/gha-workflows/.github/workflows/reusable-cd.yaml@v0.0.22 # <-- Import the reusable workflow
     with:
       backup: true
       prod_gcp_project_id: SOME_PROJECT_ID
