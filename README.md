@@ -39,7 +39,7 @@ This workflow should be used to promote an `rc` image to a `prod` image.
   - `type`: **boolean**
   - `default`: **true**
   - `required`: **false**
-- `prod_gcp_project_id`: The GCP project ID where the `prod` image backup will be pushed.
+- `prod-gcp-project-id`: The GCP project ID where the `prod` image backup will be pushed.
   - `type`: **string**
   - `default`: **none**
   - `required`: **true**
