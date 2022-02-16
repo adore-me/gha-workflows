@@ -30,7 +30,7 @@ jobs:
 
 ## 📖 Contents
 
-### [Reusable CD workflow](reusable-cd.yaml)
+### [Reusable CD workflow](.github/workflows/reusable-cd.yaml)
 
 This workflow should be used to promote an `rc` image to a `prod` image. 
 
