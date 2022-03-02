@@ -12,6 +12,11 @@ on:
         description: 'GCP project ID for production'
         required: true
         type: string
+      create-jira-tickets:
+        description: 'Create jira tickets and link items based on commit history'
+        default: true
+        required: false
+        type: boolean
     secrets:
       QUAY_USER:
         required: true
@@ -110,31 +115,25 @@ jobs:
         body: "Released `v${{ needs.setup-tags.outputs.tag }}` with image tag `prod-${{ needs.setup-tags.outputs.tag }}`"
         token: ${{ secrets.GITHUB_TOKEN }}
         generateReleaseNotes: true
-
-  create-jira-tickets:
-    name: 'Create jira tickets'
-    needs: [setup-tags, push-main-image]
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Find out if the update is made from a pull request; get the PR number"
-        uses: actions/github-script@v5
-        id: pr_id
-        with:
-          result-encoding: string
-          script: |
-            const msg = (context.payload.head_commit.message).match(/#\d+/);
-            let pr= Array.isArray(msg) ? parseInt(msg[0].replace('#','')) : 0
-            console.log("this is pr number: " + pr)
-            return pr
-      - name: "Create jira tickets and link items, send deployment notification"
-        uses: adore-me/github-action-deploysbot@master
-        if: "${{ steps.pr_id.outputs.result > 0 }}"
-        with:
-          JIRA_USER: ${{ secrets.DEPLOYSBOT_JIRA_USER_EMAIL }}
-          JIRA_PASSWORD: ${{ secrets.DEPLOYSBOT_JIRA_USER_PASSWORD }}
-          JIRA_URI: ${{ secrets.DEPLOYSBOT_JIRA_URI }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_PR_NUMBER: ${{ steps.pr_id.outputs.result }}
-          GH_TAG: ${{ needs.setup-tags.outputs.prod-tag }}
-          SLACK_WEBHOOK: ${{ secrets.DEPLOYSBOT_SLACK_CHANNEL_HOOK }}
-
+    - name: "Find out if the update is made from a pull request; get the PR number"
+      uses: actions/github-script@v5
+      if: ${{ inputs.create-jira-tickets }}
+      id: pr_id
+      with:
+        result-encoding: string
+        script: |
+          const msg = (context.payload.head_commit.message).match(/#\d+/);
+          let pr= Array.isArray(msg) ? parseInt(msg[0].replace('#','')) : 0
+          console.log("this is pr number: " + pr)
+          return pr
+    - name: "Create jira tickets and link items, send deployment notification"
+      uses: adore-me/github-action-deploysbot@master
+      if: "${{ inputs.create-jira-tickets && steps.pr_id.outputs.result > 0}}"
+      with:
+        JIRA_USER: ${{ secrets.DEPLOYSBOT_JIRA_USER_EMAIL }}
+        JIRA_PASSWORD: ${{ secrets.DEPLOYSBOT_JIRA_USER_PASSWORD }}
+        JIRA_URI: ${{ secrets.DEPLOYSBOT_JIRA_URI }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_PR_NUMBER: ${{ steps.pr_id.outputs.result }}
+        GH_TAG: ${{ needs.setup-tags.outputs.prod-tag }}
+        SLACK_WEBHOOK: ${{ secrets.DEPLOYSBOT_SLACK_CHANNEL_HOOK }}
