@@ -133,7 +133,7 @@ jobs:
           JIRA_USER: ${{ secrets.DEPLOYSBOT_JIRA_USER_EMAIL }}
           JIRA_PASSWORD: ${{ secrets.DEPLOYSBOT_JIRA_USER_PASSWORD }}
           JIRA_URI: ${{ secrets.DEPLOYSBOT_JIRA_URI }}
-          GH_TOKEN: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_PR_NUMBER: ${{ steps.pr_id.outputs.result }}
           GH_TAG: ${{ needs.setup-tags.outputs.prod-tag }}
           SLACK_WEBHOOK: ${{ secrets.DEPLOYSBOT_SLACK_CHANNEL_HOOK }}
