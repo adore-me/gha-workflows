@@ -24,6 +24,14 @@ on:
         required: true
       GCR_CREDENTIALS:
         required: true
+      JIRA_USER:
+        required: true
+      JIRA_PASSWORD:
+        required: true
+      JIRA_URI:
+        required: true
+      SLACK_WEBHOOK:
+        required: true
 
 jobs:
   setup-tags:
@@ -130,10 +138,10 @@ jobs:
       uses: adore-me/github-action-deploysbot@master
       if: "${{ inputs.create-jira-tickets && steps.pr_id.outputs.result > 0}}"
       with:
-        JIRA_USER: ${{ secrets.DEPLOYSBOT_JIRA_USER_EMAIL }}
-        JIRA_PASSWORD: ${{ secrets.DEPLOYSBOT_JIRA_USER_PASSWORD }}
-        JIRA_URI: ${{ secrets.DEPLOYSBOT_JIRA_URI }}
+        JIRA_USER: ${{ secrets.JIRA_USER }}
+        JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+        JIRA_URI: ${{ secrets.JIRA_URI }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_PR_NUMBER: ${{ steps.pr_id.outputs.result }}
         GH_TAG: ${{ needs.setup-tags.outputs.prod-tag }}
-        SLACK_WEBHOOK: ${{ secrets.DEPLOYSBOT_SLACK_CHANNEL_HOOK }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
