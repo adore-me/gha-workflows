@@ -32,6 +32,10 @@ on:
         required: true
       SLACK_WEBHOOK:
         required: true
+      DEPLOYS_BOT_HEADER:
+        required: true
+      DEPLOYS_BOT_HEADER_VALUE:
+        required: true
 
 jobs:
   setup-tags:
