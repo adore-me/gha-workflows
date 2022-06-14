@@ -139,7 +139,7 @@ jobs:
           console.log("this is pr number: " + pr)
           return pr
     - name: "Create jira tickets and link items, send deployment notification"
-      uses: adore-me/github-action-deploysbot@master
+      uses: adore-me/github-action-deploysbot@v0.0.1
       if: "${{ inputs.create-jira-tickets && steps.pr_id.outputs.result > 0}}"
       with:
         JIRA_USER: ${{ secrets.JIRA_USER }}
