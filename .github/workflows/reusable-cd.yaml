@@ -145,3 +145,5 @@ jobs:
         GH_PR_NUMBER: ${{ steps.pr_id.outputs.result }}
         GH_TAG: ${{ needs.setup-tags.outputs.prod-tag }}
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        DEPLOYS_BOT_HEADER: ${{ secrets.DEPLOYSBOT_HEADER }}
+        DEPLOYS_BOT_HEADER_VALUE: ${{ secrets.DEPLOYSBOT_HEADER_VALUE }}
