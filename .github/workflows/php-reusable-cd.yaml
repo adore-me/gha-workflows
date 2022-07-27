@@ -142,11 +142,11 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCR_CREDENTIALS }} # Use org secrets for this
       - name: 'Tag backup Docker image'
-        run: |
-          docker tag \
-            quay.io/adoreme/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }} \
+        run: >
+          docker tag 
+            quay.io/adoreme/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }} 
             us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }}
       - name: 'Push prod Docker image to backup registry'
-        run: |
-          docker push \
+        run: >
+          docker push 
             us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }}
