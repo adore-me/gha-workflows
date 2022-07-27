@@ -56,6 +56,7 @@ jobs:
         uses: rymndhng/release-on-push-action@v0.25.0
         env:
           DEBUG: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           use_github_release_notes: true
           bump_version_scheme: patch
