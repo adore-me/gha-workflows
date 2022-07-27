@@ -88,7 +88,7 @@ jobs:
         with:
           context: ./ci
           push: true
-          tags: quay.io/adoreme/${{ github.event.repository.name }}:${{ needs.release.outputs.tag_name }}
+          tags: quay.io/adoreme/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }}
 
   create-jira-ticket:
     name: 'Create JIRA ticket'
