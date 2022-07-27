@@ -123,7 +123,7 @@ jobs:
   # PUSH backup image to GCP
   tag-push-backup-image:
     name: 'Tag/Push backup image (GCR)'
-    needs: [build-push-main-image]
+    needs: [release, build-push-main-image]
     if: inputs.backup
     runs-on: ubuntu-latest
     steps:
