@@ -134,7 +134,7 @@ jobs:
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
       - name: 'Pull main Docker image'
-        run: quay.io/adoreme/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }}
+        run: docker pull quay.io/adoreme/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }}
       - name: 'Login backup Docker registry (GCR)'
         uses: docker/login-action@v1
         with:
