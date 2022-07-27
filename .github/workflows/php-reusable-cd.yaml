@@ -51,6 +51,8 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
       - name: 'Create release'
         id: release
         uses: rymndhng/release-on-push-action@v0.25.0
@@ -66,23 +68,20 @@ jobs:
     needs: [release]
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout current repository'
+      - name: 'Checkout'
         uses: actions/checkout@v3
-
       - name: 'Run Composer Install'
         uses: adore-me/composer-action@master
         with:
           no-dev: true
           php-image-tag: ${{ inputs.php-image-tag }}
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
-
       - name: 'Login Docker registry (Quay)'
         uses: docker/login-action@v1
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
-
       - name: 'Docker build & push image'
         uses: docker/build-push-action@v3.1.0
         with:
