@@ -75,11 +75,13 @@ jobs:
         with:
           php-image: ${{ steps.set-php-image.outputs.image }}
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
+      - name: 'List files'
+        run: ls -la
       - name: 'Docker build & push image'
         uses: docker/build-push-action@v3.1.1
         with:
           context: .
-          file: ./ci/Dockerfile
+          file: ci/Dockerfile
           push: true
           tags: quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
     outputs:
