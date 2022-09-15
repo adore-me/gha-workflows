@@ -74,9 +74,8 @@ jobs:
         uses: adore-me/gha-composer@v1.0.1
         with:
           php-image: ${{ steps.set-php-image.outputs.image }}
+          composer-no-dev: 'true'
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
-      - name: 'List files'
-        run: ls -la
       - name: 'Docker build & push image'
         uses: docker/build-push-action@v3.1.1
         with:
