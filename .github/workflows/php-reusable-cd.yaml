@@ -86,7 +86,7 @@ jobs:
 
   create-jira-ticket:
     name: 'Create JIRA ticket'
-    needs: [ release, build-push-main-image ]
+    needs: [ release ]
     runs-on: ubuntu-latest
     steps:
       - name: "Find out if the update is made from a pull request; get the PR number"
@@ -117,7 +117,7 @@ jobs:
   # PUSH backup image to GCP
   tag-push-backup-image:
     name: 'Tag/Push backup image (GCR)'
-    needs: [ release, build-push-main-image ]
+    needs: [ release ]
     if: inputs.backup
     runs-on: ubuntu-latest
     steps:
