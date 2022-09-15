@@ -59,16 +59,6 @@ jobs:
           use_github_release_notes: true
           bump_version_scheme: patch
           tag_prefix: ""
-    outputs:
-      tag: ${{ steps.release.outputs.tag_name }}
-
-  build-push-main-image:
-    name: 'Build/Push main image Quay'
-    needs: [ release ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v3
       - name: 'Login Docker registry (Quay)'
         uses: docker/login-action@v1
         with:
@@ -79,18 +69,20 @@ jobs:
         id: set-php-image
         uses: adore-me/gha-image-setup@v1.0.0
         with:
-          image-tag: ${{ inputs.php-image-tag }}
+          tag: ${{ inputs.php-image-tag }}
       - name: 'Composer Install'
         uses: adore-me/gha-composer@v1.0.0
         with:
           php-image: ${{ steps.set-php-image.outputs.image }}
-          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
+          gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
       - name: 'Docker build & push image'
         uses: docker/build-push-action@v3.1.1
         with:
           context: ./ci
           push: true
-          tags: quay.io/adoreme/${{ github.event.repository.name }}:${{ needs.release.outputs.tag }}
+          tags: quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
+    outputs:
+      tag: ${{ steps.release.outputs.tag_name }}
 
   create-jira-ticket:
     name: 'Create JIRA ticket'
