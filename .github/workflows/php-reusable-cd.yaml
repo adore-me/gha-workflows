@@ -50,12 +50,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.0.2
       - name: 'Create release'
         id: release
         uses: rymndhng/release-on-push-action@v0.25.0
         env:
-          DEBUG: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           use_github_release_notes: true
@@ -66,7 +65,7 @@ jobs:
 
   build-push-main-image:
     name: 'Build/Push main image Quay'
-    needs: [release]
+    needs: [ release ]
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
@@ -77,14 +76,13 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
-      - name: 'Run Composer Install'
-        uses: adore-me/composer-action@master
+      - name: 'Composer Install'
+        uses: adore-me/gha-composer@v1.0.0
         with:
-          no-dev: true
-          php-image-tag: ${{ inputs.php-image-tag }}
-          gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
+          php-image: ${{ inputs.php-image-tag }}
+          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
       - name: 'Docker build & push image'
-        uses: docker/build-push-action@v3.1.0
+        uses: docker/build-push-action@v3.1.1
         with:
           context: ./ci
           push: true
@@ -123,7 +121,7 @@ jobs:
   # PUSH backup image to GCP
   tag-push-backup-image:
     name: 'Tag/Push backup image (GCR)'
-    needs: [release, build-push-main-image]
+    needs: [ release, build-push-main-image ]
     if: inputs.backup
     runs-on: ubuntu-latest
     steps:
