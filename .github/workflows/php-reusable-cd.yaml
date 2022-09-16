@@ -8,6 +8,11 @@ on:
         required: true
         type: string
         default: ''
+      cache-routes:
+        description: 'Cache routes (laravel)'
+        required: false
+        type: boolean
+        default: false
       backup:
         description: 'Push image to backup registry'
         default: true
@@ -76,6 +81,12 @@ jobs:
           php-image: ${{ steps.set-php-image.outputs.image }}
           composer-no-dev: 'true'
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
+      - name: 'Cache routes'
+        if: ${{ inputs.cache-routes }}
+        uses: adore-me/gha-run-cmds@v1.0.0
+        with:
+          docker-image: ${{ steps.set-php-image.outputs.image }}
+          run-laravel-route-cache: true
       - name: 'Docker build & push image'
         uses: docker/build-push-action@v3.1.1
         with:
