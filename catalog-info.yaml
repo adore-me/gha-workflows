@@ -5,6 +5,7 @@ metadata:
   annotations:
     github.com/project-slug: adore-me/gha-workflows
 spec:
-  type: other
-  lifecycle: unknown
+  subcomponentOf: component:default>/gha-workflows-docs
+  type: workflow
+  lifecycle: prod
   owner: core-team
