@@ -1,0 +1,34 @@
+name: 'CD'
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'mkdocs.yml'
+      - 'catalog-info.yaml'
+      - 'README.md'
+      - 'local/**'
+      - 'ci/Jenkinsfile'
+      - 'ci/env.yml'
+      - 'ci/pipeline.yml'
+      - '.github/workflows/**'
+jobs:
+  cd:
+    name: 'CD'
+    uses: adore-me/gha-workflows/.github/workflows/php-reusable-cd.yaml@build-image-on-merge
+    with:
+      php-image-tag: PHP_IMAGE_TAG # CHANGE THIS TO YOUR PHP IMAGE TAG
+      cache-routes: true
+      backup: true
+      prod-gcp-project-id: am-production-268015
+      create-jira-tickets: true
+    secrets:
+      GH_OAUTH_TOKEN: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
+      QUAY_USER: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
+      QUAY_PASSWORD: ${{ secrets.GHA_QUAY_ROBOT_PASSWORD }}
+      GCR_CREDENTIALS: ${{ secrets.GCR_CREDENTIALS }}
+      JIRA_USER: ${{ secrets.DEPLOYSBOT_JIRA_USER_EMAIL }}
+      JIRA_PASSWORD: ${{ secrets.DEPLOYSBOT_JIRA_USER_PASSWORD }}
+      JIRA_URI: ${{ secrets.DEPLOYSBOT_JIRA_URI }}
+      SLACK_WEBHOOK: ${{ secrets.DEPLOYSBOT_SLACK_CHANNEL_HOOK }}
+      DEPLOYSBOT_HEADER: ${{ secrets.DEPLOYSBOT_HEADER }}
+      DEPLOYSBOT_HEADER_VALUE: ${{ secrets.DEPLOYSBOT_HEADER_VALUE }}

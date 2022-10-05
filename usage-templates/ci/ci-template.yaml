@@ -1,0 +1,122 @@
+name: 'CI'
+permissions: write-all
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize, ready_for_review ]
+    branches: [ main, master ]
+    paths-ignore:
+      - 'mkdocs.yml'
+      - 'catalog-info.yaml'
+      - 'README.md'
+      - 'local/**'
+      - 'ci/Jenkinsfile'
+      - 'ci/env.yml'
+      - 'ci/pipeline.yml'
+      - '.github/workflows/**'
+env:
+  IMAGE_TAG: PHP_IMAGE_TAG # CHANGE THIS TO YOUR PHP IMAGE TAG
+  APP_BUILD_CACHE_KEY: build-${{ github.event.repository.name }}-${{ github.sha }}
+jobs:
+  build-application:
+    name: 'Build Application'
+    runs-on: ubuntu-latest
+    outputs:
+      php-image: ${{ steps.set-php-image.outputs.image }}
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3.0.2
+
+      - name: 'Login quay'
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
+          password: ${{ secrets.GHA_QUAY_ROBOT_PASSWORD }}
+
+      - name: 'Set PHP image'
+        id: set-php-image
+        uses: adore-me/gha-image-setup@v1.0.0
+
+      - name: 'Composer Install'
+        uses: adore-me/gha-composer@v1.0.4
+        with:
+          php-image: ${{ steps.set-php-image.outputs.image }}
+          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
+
+      - name: 'Build cache (cache built code)'
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}
+          key: ${{ env.APP_BUILD_CACHE_KEY }}
+
+  static-checks:
+    needs: [ build-application ]
+    name: 'Static Checks'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Login quay'
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
+          password: ${{ secrets.GHA_QUAY_ROBOT_PASSWORD }}
+
+      - name: 'Build cache restore (get built code from build step)'
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}
+          key: ${{ env.APP_BUILD_CACHE_KEY }}
+
+      - name: 'Run Static Checks'
+        id: static-checks
+        uses: adore-me/gha-php-static-checks@v2.0.1
+        with:
+          php-image: ${{ needs.build-application.outputs.php-image }}
+          run-phpcs: 'true'
+          run-phpmd: 'true'
+          run-phpcpd: 'true'
+          run-phpstan: 'true'
+
+  tests:
+    needs: [ build-application ]
+    name: 'Tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Login quay'
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
+          password: ${{ secrets.GHA_QUAY_ROBOT_PASSWORD }}
+
+      - name: 'Build cache restore (get built code from build step)'
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}
+          key: ${{ env.APP_BUILD_CACHE_KEY }}
+
+      - name: 'Run PHPUnit'
+        id: phpunit
+        uses: adore-me/gha-phpunit@v2.0.3
+        with:
+          php-image: ${{ needs.build-application.outputs.php-image }}
+          enable-mysql: true
+          enable-redis: true
+          with-coverage: true
+
+  post-run-tasks:
+    if: always()
+    needs: [ build-application, static-checks, tests ]
+    name: 'Post Run Tasks'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Upload artifacts to GCS'
+        uses: adore-me/gha-gcs-upload-artifacts@v1.0.2
+        with:
+          gcs-sa: ${{ secrets.GCP_DEVOPS_SA }}
+          gcs-bucket: 'gha-checks-artifacts'
+      - name: 'Cleanup cached build artifacts'
+        uses: adore-me/gha-clean-cache@v1.0.2
+        with:
+          key: ${{ env.APP_BUILD_CACHE_KEY }}
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
