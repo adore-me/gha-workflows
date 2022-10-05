@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: gha-workflows
+  annotations:
+    github.com/project-slug: adore-me/gha-workflows
+spec:
+  type: workflow
+  lifecycle: prod
+  owner: core-team

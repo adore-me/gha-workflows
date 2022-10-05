@@ -10,6 +10,7 @@ on:
       - '.github/workflows/release.yaml'
       - '.github/PULL_REQUEST_TEMPLATE.md'
       - '.github/CODEOWNERS'
+      - 'LICENSE'
 
 jobs:
   release-on-push:
