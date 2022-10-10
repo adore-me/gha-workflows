@@ -14,7 +14,7 @@ on:
 jobs:
   cd:
     name: 'CD'
-    uses: adore-me/gha-workflows/.github/workflows/php-reusable-cd.yaml@build-image-on-merge
+    uses: adore-me/gha-workflows/.github/workflows/php-reusable-cd.yaml@v1.0.0
     with:
       php-image-tag: PHP_IMAGE_TAG # CHANGE THIS TO YOUR PHP IMAGE TAG
       cache-routes: true
