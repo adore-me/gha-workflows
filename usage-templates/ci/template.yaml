@@ -38,10 +38,10 @@ jobs:
         uses: adore-me/gha-image-setup@v1.0.0
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v1.0.5
+        uses: adore-me/gha-composer@v1.0.7
         with:
           php-image: ${{ steps.set-php-image.outputs.image }}
-          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
+          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
 
       - name: 'Build cache (cache built code)'
         uses: actions/cache@v3
@@ -76,6 +76,7 @@ jobs:
           run-phpmd: 'true'
           run-phpcpd: 'true'
           run-phpstan: 'true'
+          run-suites: "UnitTests"
 
   tests:
     needs: [ build-application ]
