@@ -38,7 +38,7 @@ jobs:
         uses: adore-me/gha-image-setup@v1.0.0
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v1.0.7
+        uses: adore-me/gha-composer@v1.0.8
         with:
           php-image: ${{ steps.set-php-image.outputs.image }}
           gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
