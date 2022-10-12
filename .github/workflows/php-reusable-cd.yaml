@@ -76,7 +76,7 @@ jobs:
         with:
           tag: ${{ inputs.php-image-tag }}
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v1.0.1
+        uses: adore-me/gha-composer@v1.0.8
         with:
           php-image: ${{ steps.set-php-image.outputs.image }}
           composer-no-dev: 'true'
