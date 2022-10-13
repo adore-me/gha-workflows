@@ -58,13 +58,6 @@ jobs:
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
 
-      - name: 'Login Docker registry (GCR)'
-        uses: docker/login-action@v1
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USER }} # Use org secrets for this
-          password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
-
       - name: 'Login backup Docker registry (GCR)'
         uses: docker/login-action@v1
         with:
@@ -99,8 +92,7 @@ jobs:
           file: './ci/config.yaml'
           key-path: '["prod-cache-routes"]'
 
-      - name: 'Cache routes'
-        if: ${{ inputs.cache-routes }}
+      - name: 'Running extra commands'
         uses: adore-me/gha-run-cmds@v1.0.0
         with:
           docker-image: ${{ steps.set-php-image.outputs.image }}
