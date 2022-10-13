@@ -3,16 +3,6 @@ name: 'Reusable continuous deployment workflow'
 on:
   workflow_call:
     inputs:
-      php-image-tag:
-        description: 'The PHP image to use'
-        required: true
-        type: string
-        default: ''
-      cache-routes:
-        description: 'Cache routes (laravel)'
-        required: false
-        type: boolean
-        default: false
       backup:
         description: 'Push image to backup registry'
         default: true
@@ -70,23 +60,37 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
+
+      - name: 'Get PHP image tag from CI config'
+        id: project-image-config
+        uses: jbutcher5/read-yaml@main
+        with:
+          file: './ci/config.yaml'
+          key-path: '["php-image-tag"]'
+
       - name: 'Set PHP image'
         id: set-php-image
         uses: adore-me/gha-image-setup@v1.0.0
         with:
-          tag: ${{ inputs.php-image-tag }}
+          tag: ${{ steps.project-image-config.outputs.data }}
       - name: 'Composer Install'
         uses: adore-me/gha-composer@v1.0.1
         with:
           php-image: ${{ steps.set-php-image.outputs.image }}
           composer-no-dev: 'true'
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
+      - name: 'Get cache option from CI config'
+        id: project-cache-config
+        uses: jbutcher5/read-yaml@main
+        with:
+          file: './ci/config.yaml'
+          key-path: '["prod-cache-routes"]'
       - name: 'Cache routes'
         if: ${{ inputs.cache-routes }}
         uses: adore-me/gha-run-cmds@v1.0.0
         with:
           docker-image: ${{ steps.set-php-image.outputs.image }}
-          run-laravel-route-cache: true
+          run-laravel-route-cache: ${{ steps.project-cache-config.outputs.data }}
       - name: 'Docker build & push image'
         uses: docker/build-push-action@v3.1.1
         with:

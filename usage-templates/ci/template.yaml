@@ -14,7 +14,6 @@ on:
       - 'ci/pipeline.yml'
       - '.github/workflows/**'
 env:
-  IMAGE_TAG: PHP_IMAGE_TAG # CHANGE THIS TO YOUR PHP IMAGE TAG
   APP_BUILD_CACHE_KEY: build-${{ github.event.repository.name }}-${{ github.sha }}
 jobs:
   build-application:
@@ -36,6 +35,8 @@ jobs:
       - name: 'Set PHP image'
         id: set-php-image
         uses: adore-me/gha-image-setup@v1.0.0
+        with:
+          tag: ${{ steps.project-config.outputs.data }}
 
       - name: 'Composer Install'
         uses: adore-me/gha-composer@v1.0.8
