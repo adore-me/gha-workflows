@@ -16,9 +16,6 @@ jobs:
     name: 'CD'
     uses: adore-me/gha-workflows/.github/workflows/php-reusable-cd.yaml@v1.0.0
     with:
-      php-image-tag: PHP_IMAGE_TAG # CHANGE THIS TO YOUR PHP IMAGE TAG
-      cache-routes: true
-      backup: true
       prod-gcp-project-id: am-production-268015
       create-jira-tickets: true
     secrets:
