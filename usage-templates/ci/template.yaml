@@ -32,11 +32,18 @@ jobs:
           username: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
           password: ${{ secrets.GHA_QUAY_ROBOT_PASSWORD }}
 
+      - name: 'Get PHP image tag from CI config'
+        id: project-image-config
+        uses: jbutcher5/read-yaml@main
+        with:
+          file: './ci/config.yaml'
+          key-path: '["php-image-tag"]'
+
       - name: 'Set PHP image'
         id: set-php-image
         uses: adore-me/gha-image-setup@v1.0.0
         with:
-          tag: ${{ steps.project-config.outputs.data }}
+          tag: ${{ steps.project-image-config.outputs.data }}
 
       - name: 'Composer Install'
         uses: adore-me/gha-composer@v1.0.8
