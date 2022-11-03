@@ -39,11 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - name: 'Create release'
         id: release
-        uses: rymndhng/release-on-push-action@v0.25.0
+        uses: rymndhng/release-on-push-action@v0.27.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -52,36 +52,26 @@ jobs:
           tag_prefix: ""
 
       - name: 'Login Docker registry (Quay)'
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2.1.0
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
 
       - name: 'Login backup Docker registry (GCR)'
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2.1.0
         with:
           registry: us.gcr.io
           username: _json_key
           password: ${{ secrets.GCR_CREDENTIALS }} # Use org secrets for this
 
-      - name: 'Get PHP image tag from CI config'
-        id: project-image-config
-        uses: jbutcher5/read-yaml@main
-        with:
-          file: './ci/config.yaml'
-          key-path: '["php-image-tag"]'
-
       - name: 'Set PHP image'
         id: set-php-image
-        uses: adore-me/gha-image-setup@v1.0.0
-        with:
-          tag: ${{ steps.project-image-config.outputs.data }}
+        uses: adore-me/gha-image-setup@v1.1.2
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v1.0.8
+        uses: adore-me/gha-composer@v2.0.3
         with:
-          php-image: ${{ steps.set-php-image.outputs.image }}
           composer-no-dev: 'true'
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
 
@@ -93,9 +83,8 @@ jobs:
           key-path: '["prod-cache-routes"]'
 
       - name: 'Running extra commands'
-        uses: adore-me/gha-run-cmds@v1.0.0
+        uses: adore-me/gha-run-cmds@v1.1.1
         with:
-          docker-image: ${{ steps.set-php-image.outputs.image }}
           run-laravel-route-cache: ${{ steps.project-cache-config.outputs.data }}
 
       - name: 'Docker build & push image'
@@ -115,7 +104,7 @@ jobs:
     needs: [ release ]
     runs-on: ubuntu-latest
     steps:
-      - name: "Find out if the update is made from a pull request; get the PR number"
+      - name: 'Find out if the update is made from a pull request; get the PR number'
         uses: actions/github-script@v5
         if: inputs.create-jira-tickets
         id: pr-id
@@ -127,7 +116,7 @@ jobs:
             console.log("this is pr number: " + pr)
             return pr
 
-      - name: "Create jira tickets and link items, send deployment notification"
+      - name: 'Create jira tickets and link items, send deployment notification'
         uses: adore-me/github-action-deploysbot@v0.0.2
         if: inputs.create-jira-tickets && steps.pr-id.outputs.result > 0
         with:
