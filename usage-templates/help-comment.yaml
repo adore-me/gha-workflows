@@ -1,0 +1,29 @@
+name: 'Help Comment'
+on:
+  pull_request:
+    types: [ opened ]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: wow-actions/auto-comment@v1.1.2
+        name: 'Help Comment'
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pullRequestOpened: |
+            👋 @{{ author }}
+            
+            **Versioning**
+            By default, the versioning is configured to bump the `patch` version of the script.  
+            ℹ If you need to bump the `major` or `minor` version you should label this `PR` with either one of:
+            - `release:major` 
+            - `release:minor` 
+
+            **Canary build**
+            If you need to build a canary image from this `PR`, all you need to do is to post a comment (all params are optional and will be picked up from defaults):
+            ```
+            /canary [app-version=DEFAULT_TO_BRANCH_NAME] [php-image-tag=DEFAULT_TO_CI_CONFIG_YAML] [cache-routes=DEFAULTS_TO_FALSE]
+            ```
+            
+            You will receive a reply with image details when it's done.
+            
