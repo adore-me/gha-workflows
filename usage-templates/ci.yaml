@@ -97,12 +97,13 @@ jobs:
         uses: adore-me/gha-image-setup@v1.1.2
 
       - name: 'Run PHPUnit'
-        uses: adore-me/gha-phpunit@v2.2.1
+        uses: adore-me/gha-phpunit@v2.3.2
         id: phpunit
         with:
           enable-mysql: true
           enable-redis: true
           with-coverage: true
+          verbose: true
           run-suites: 'UnitTests'
   post-run-tasks:
     if: always()
