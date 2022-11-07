@@ -49,7 +49,7 @@ jobs:
         with:
           use_github_release_notes: true
           bump_version_scheme: patch
-          tag_prefix: ""
+          tag_prefix: v
 
       - name: 'Login Docker registry (Quay)'
         uses: docker/login-action@v2.1.0
