@@ -75,17 +75,25 @@ jobs:
           composer-no-dev: 'true'
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
 
-      - name: 'Get cache option from CI config'
-        id: project-cache-config
+      - name: 'Get route cache option from CI config'
+        id: project-cache-routes
         uses: jbutcher5/read-yaml@main
         with:
           file: './ci/config.yaml'
           key-path: '["prod-cache-routes"]'
 
-      - name: 'Running extra commands'
-        uses: adore-me/gha-run-cmds@v1.1.1
+      - name: 'Get config cache option from CI config'
+        id: project-cache-config
+        uses: jbutcher5/read-yaml@main
         with:
-          run-laravel-route-cache: ${{ steps.project-cache-config.outputs.data }}
+          file: './ci/config.yaml'
+          key-path: '["prod-cache-config"]'
+
+      - name: 'Running extra commands'
+        uses: adore-me/gha-run-cmds@v1.1.2
+        with:
+          run-laravel-route-cache: ${{ steps.project-cache-routes.outputs.data }}
+          run-laravel-config-cache: ${{ steps.project-cache-config.outputs.data }}
 
       - name: 'Docker build & push image'
         uses: docker/build-push-action@v3.2.0
