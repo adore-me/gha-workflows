@@ -97,7 +97,7 @@ jobs:
         uses: adore-me/gha-image-setup@v1.1.2
 
       - name: 'Run PHPUnit'
-        uses: adore-me/gha-phpunit@v2.3.3
+        uses: adore-me/gha-phpunit@v2.3.6
         id: phpunit
         with:
           enable-mysql: true
