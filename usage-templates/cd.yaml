@@ -19,7 +19,7 @@ jobs:
       prod-gcp-project-id: am-production-268015
       create-jira-tickets: true
     secrets:
-      GH_OAUTH_TOKEN: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
+      GH_OAUTH_TOKEN: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
       QUAY_USER: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
       QUAY_PASSWORD: ${{ secrets.GHA_QUAY_ROBOT_PASSWORD }}
       GCR_CREDENTIALS: ${{ secrets.GCR_CREDENTIALS }}
