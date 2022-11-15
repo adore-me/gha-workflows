@@ -34,7 +34,7 @@ on:
 
 jobs:
   canary-build:
-    name: 'Canary Build'
+    name: 'Canary Build Exp'
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
@@ -60,44 +60,66 @@ jobs:
         id: params
         run: |
           GR='\033[0;32m'
+          BL='\033[0;34m'
           NC='\033[0;34m'
-          
-          branchName="${{ github.event.client_payload.pull_request.head.ref && github.event.client_payload.pull_request.head.ref || github.ref_name }}"          
-          echo -e "${GR}branchName: $branchName${NC}"
-          
-          appVersion=${branchName//[^[:alnum:]]/}
-          if [ -n "${{ github.event.client_payload.slash_command.args.named.app-version }}" ]; then
-          appVersion="${{ github.event.client_payload.slash_command.args.named.app-version }}"
+
+          wfSource="manual-trigger"
+          if [ -n "${{ github.event.client_payload }}" ]; then
+            wfSource="slash-command"
           fi
-          if [ -n "${{ github.event.inputs.app-version }}" ]; then
-          appVersion="${{ github.event.inputs.app-version }}"
-          fi
-          echo -e "${GR}app-version: $appVersion${NC}"
+
+          branchName=""
+          appVersion=""
+          phpTag=""
+          cacheRoutes=""
+
+          case $wfSource in
+
+          "manual-trigger")
+            branchName="${{ github.ref_name }}"
+
+            if [ -n "${{ github.event.inputs.app-version }}" ]; then
+              appVersion="${{ github.event.inputs.app-version }}"
+            fi
+
+            phpTag="${{ steps.project-image-config.outputs.data }}"
+            if [ -n "${{ github.event.inputs.php-image-tag }}" ]; then
+              phpTag="${{ github.event.inputs.php-image-tag }}"
+            fi
+
+            cacheRoutes="${{ steps.project-cache-config.outputs.data }}"
+            if [ -n "${{ github.event.inputs.cache-routes }}" ]; then
+              cacheRoutes="${{ github.event.inputs.cache-routes }}"
+            fi
+            ;;
+
+          "slash-command")
+            branchName="${{ github.event.client_payload.pull_request.head.ref }}"
+
+            appVersion="canary-${branchName//[^[:alnum:]]/}"
+            if [ -n "${{ github.event.client_payload.slash_command.args.named.app-version }}" ]; then
+              appVersion="canary-${{ github.event.client_payload.slash_command.args.named.app-version }}"
+            fi
+
+            phpTag="${{ steps.project-image-config.outputs.data }}"
+            if [ -n "${{ github.event.client_payload.slash_command.args.named.php-image-tag }}" ]; then
+              phpTag="${{ github.event.client_payload.slash_command.args.named.php-image-tag }}"
+            fi
+
+            cacheRoutes="${{ steps.project-cache-config.outputs.data }}"
+            if [ -n "${{ github.event.client_payload.slash_command.args.named.cache-routes }}" ]; then
+              cacheRoutes="${{ github.event.client_payload.slash_command.args.named.cache-routes }}"
+            fi
+            ;;
+          esac
+
+          echo -e "${BL}app-version: $appVersion${NC}"
           echo "app-version=$appVersion" >> "$GITHUB_OUTPUT"
-          
-          echo -e "${GR}steps.project-image-config.outputs.data: ${{ steps.project-image-config.outputs.data }}${NC}"
-          echo -e "${GR}steps.project-cache-config.outputs.data: ${{ steps.project-cache-config.outputs.data }}${NC}"
-          echo -e "${GR}github.event.inputs.php-image-tag: ${{ github.event.inputs.php-image-tag }}${NC}"
-          echo -e "${GR}github.event.client_payload.slash_command.args.named.php-image-tag: ${{ github.event.client_payload.slash_command.args.named.php-image-tag }}${NC}"
-          
-          phpTag="${{ steps.project-image-config.outputs.data }}"
-          if [ -n "${{ github.event.client_payload.slash_command.args.named.php-image-tag }}" ]; then
-          phpTag="${{ github.event.client_payload.slash_command.args.named.php-image-tag }}"
-          fi
-          if [ -n "${{ github.event.inputs.php-image-tag }}" ]; then
-          phpTag="${{ github.event.inputs.php-image-tag }}"
-          fi
-          echo -e "${GR}php-image-tag: $phpTag${NC}"
+
+          echo -e "${BL}php-image-tag: $phpTag${NC}"
           echo "php-image-tag=$phpTag" >> "$GITHUB_OUTPUT"
-          
-          cacheRoutes="${{ steps.project-cache-config.outputs.data }}"
-          if [ -n "${{ github.event.client_payload.slash_command.args.named.cache-routes }}" ]; then
-          cacheRoutes="${{ github.event.client_payload.slash_command.args.named.cache-routes }}"
-          fi
-          if [ -n "${{ github.event.inputs.cache-routes }}" ]; then
-          cacheRoutes="${{ github.event.inputs.cache-routes }}"
-          fi
-          echo -e "${GR}cache-routes: $cacheRoutes${NC}"
+
+          echo -e "${BL}cache-routes: $cacheRoutes${NC}"
           echo "cache-routes=$cacheRoutes" >> "$GITHUB_OUTPUT"
 
       - name: 'Login Docker registry (Quay)'
