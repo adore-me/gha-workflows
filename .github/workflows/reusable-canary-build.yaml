@@ -16,7 +16,7 @@ on:
       cache-routes:
         description: 'Cache routes (laravel). Default to false.'
         required: false
-        type: boolean
+        type: string
         default: false
     secrets:
       QUAY_USER:
