@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       app-version:
-        description: 'Application version to build (ex: v2.1.4-canary). Defaults to branch name.'
+        description: 'Application version to build (ex: canary-v2.1.4). Defaults to branch name. `canary-` prefix is added automatically'
         required: false
         type: string
         default: ''
@@ -16,7 +16,7 @@ on:
         type: string
         default: ''
       cache-routes:
-        description: 'Cache routes (laravel). Default to false.'
+        description: 'Cache routes (laravel). Default to `ci/config.yaml`.'
         required: false
         type: boolean
         default: false
@@ -24,127 +24,13 @@ on:
 jobs:
   canary-build:
     name: 'Canary Build'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v3.1.0
-        with:
-          ref: ${{ github.event.client_payload.pull_request.head.ref && github.event.client_payload.pull_request.head.ref || github.ref_name }}
-
-      - name: 'Get PHP image tag from CI config'
-        id: project-image-config
-        uses: jbutcher5/read-yaml@main
-        with:
-          file: './ci/config.yaml'
-          key-path: '["image-tag"]'
-
-      - name: 'Get cache option from CI config'
-        id: project-cache-config
-        uses: jbutcher5/read-yaml@main
-        with:
-          file: './ci/config.yaml'
-          key-path: '["prod-cache-routes"]'
-
-      - name: 'Set params'
-        id: params
-        run: |
-          GR='\033[0;32m'
-          NC='\033[0;34m'
-          
-          branchName="${{ github.event.client_payload.pull_request.head.ref && github.event.client_payload.pull_request.head.ref || github.ref_name }}"          
-          echo -e "${GR}branchName: $branchName${NC}"
-          
-          appVersion=${branchName//[^[:alnum:]]/}
-          if [ -n "${{ github.event.client_payload.slash_command.args.named.app-version }}" ]; then
-          appVersion="${{ github.event.client_payload.slash_command.args.named.app-version }}"
-          fi
-          if [ -n "${{ github.event.inputs.app-version }}" ]; then
-          appVersion="${{ github.event.inputs.app-version }}"
-          fi
-          echo -e "${GR}app-version: $appVersion${NC}"
-          echo "app-version=$appVersion" >> "$GITHUB_OUTPUT"
-          
-          echo -e "${GR}steps.project-image-config.outputs.data: ${{ steps.project-image-config.outputs.data }}${NC}"
-          echo -e "${GR}steps.project-cache-config.outputs.data: ${{ steps.project-cache-config.outputs.data }}${NC}"
-          echo -e "${GR}github.event.inputs.php-image-tag: ${{ github.event.inputs.php-image-tag }}${NC}"
-          echo -e "${GR}github.event.client_payload.slash_command.args.named.php-image-tag: ${{ github.event.client_payload.slash_command.args.named.php-image-tag }}${NC}"
-          
-          phpTag="${{ steps.project-image-config.outputs.data }}"
-          if [ -n "${{ github.event.client_payload.slash_command.args.named.php-image-tag }}" ]; then
-          phpTag="${{ github.event.client_payload.slash_command.args.named.php-image-tag }}"
-          fi
-          if [ -n "${{ github.event.inputs.php-image-tag }}" ]; then
-          phpTag="${{ github.event.inputs.php-image-tag }}"
-          fi
-          echo -e "${GR}php-image-tag: $phpTag${NC}"
-          echo "php-image-tag=$phpTag" >> "$GITHUB_OUTPUT"
-          
-          cacheRoutes="${{ steps.project-cache-config.outputs.data }}"
-          if [ -n "${{ github.event.client_payload.slash_command.args.named.cache-routes }}" ]; then
-          cacheRoutes="${{ github.event.client_payload.slash_command.args.named.cache-routes }}"
-          fi
-          if [ -n "${{ github.event.inputs.cache-routes }}" ]; then
-          cacheRoutes="${{ github.event.inputs.cache-routes }}"
-          fi
-          echo -e "${GR}cache-routes: $cacheRoutes${NC}"
-          echo "cache-routes=$cacheRoutes" >> "$GITHUB_OUTPUT"
-
-      - name: 'Login Docker registry (Quay)'
-        uses: docker/login-action@v1
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USER }} # Use org secrets for this
-          password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
-
-      - name: 'Login backup Docker registry (GCR)'
-        uses: docker/login-action@v1
-        with:
-          registry: us.gcr.io
-          username: _json_key
-          password: ${{ secrets.GCR_CREDENTIALS }} # Use org secrets for this
-
-      - name: 'Set PHP image'
-        id: set-php-image
-        uses: adore-me/gha-image-setup@v1.1.1
-        with:
-          tag: ${{ steps.params.outputs.php-image-tag }}
-
-      - name: 'Composer Install'
-        uses: adore-me/gha-composer@v2.0.3
-        with:
-          composer-no-dev: 'true'
-          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
-
-      - name: 'Running extra commands'
-        uses: adore-me/gha-run-cmds@v1.1.1
-        with:
-          run-laravel-route-cache: ${{ steps.params.outputs.cache-routes }}
-
-      - name: 'Docker build & push image'
-        uses: docker/build-push-action@v3.2.0
-        with:
-          context: .
-          file: ci/Dockerfile
-          push: true
-          tags: |
-            quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
-            us.gcr.io/am-production-268015/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
-
-      - name: 'Respond with Docker image'
-        if: ${{ github.event_name == 'repository_dispatch' }}
-        uses: peter-evans/create-or-update-comment@v2
-        with:
-          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
-          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          body: |
-            Hi @${{ github.event.client_payload.github.payload.comment.user.login }}!
-            I've just built the image `${{ steps.params.outputs.app-version }}` for you, with PHP `${{ steps.params.outputs.php-image-tag }}` and and cache routes `${{ steps.params.outputs.cache-routes }}`.
-            You can get it with the following command:
-            ```bash
-            docker pull quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
-            ```
-      - name: 'Summarize with Docker image'
-        run: |
-          echo 'Tag `${{ steps.params.outputs.app-version }}` built with PHP `${{ steps.params.outputs.php-image-tag }}` and cache routes `${{ steps.params.outputs.cache-routes }}`' >> $GITHUB_STEP_SUMMARY
-          echo 'Get it with:' >> $GITHUB_STEP_SUMMARY
-          echo '```docker pull quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}```' >> $GITHUB_STEP_SUMMARY
+    uses: adore-me/gha-workflows/.github/workflows/reusable-canary-build.yaml@v2.2.3
+    with:
+      app-version: ${{ github.event.inputs.app-version }}
+      php-image-tag: ${{ github.event.inputs.php-image-tag }}
+      cache-routes: ${{ github.event.inputs.cache-routes }}
+    secrets:
+      QUAY_USER: ${{ secrets.QUAY_USER }}
+      QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+      GCR_CREDENTIALS: ${{ secrets.GCR_CREDENTIALS }}
+      GH_PRIVATE_ACTIONS_TOKEN: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
