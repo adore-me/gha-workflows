@@ -35,7 +35,7 @@ jobs:
         uses: adore-me/gha-image-setup@v1.1.2
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v2.0.4
+        uses: adore-me/gha-composer@v2.0.6
         with:
           gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
 
@@ -97,7 +97,7 @@ jobs:
         uses: adore-me/gha-image-setup@v1.1.2
 
       - name: 'Run PHPUnit'
-        uses: adore-me/gha-phpunit@v2.3.6
+        uses: adore-me/gha-phpunit@v2.4.1
         id: phpunit
         with:
           enable-mysql: true

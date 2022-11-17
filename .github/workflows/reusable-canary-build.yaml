@@ -144,8 +144,9 @@ jobs:
           file: ci/Dockerfile
           push: true
           labels: |
-            app.version=${{ steps.release.outputs.tag_name }}
-            app.cache.routes=${{ steps.project-cache-routes.outputs.data }}
+            app.version=${{ steps.params.outputs.app-version }}
+            app.cache.routes=${{ steps.params.outputs.cache-routes }}
+            git.branch.name=${{ steps.params.outputs.branch-name }}
             git.commit.sha=${{ github.sha }}
             php.image.tag=${{ steps.set-php-image.outputs.project-image-tag }}
             image.type=canary
