@@ -143,7 +143,7 @@ jobs:
           context: .
           file: ci/Dockerfile
           push: true
-          labels: app.version:${{ steps.params.outputs.app-version }},app.cache.routes:${{ steps.params.outputs.cache-routes }},git.branch.name:${{ steps.params.outputs.branch-name }},git.commit.sha:${{ github.sha }},php.image.tag:${{ steps.params.outputs.php-image-tag }},image.type:production
+          labels: app.version=${{ steps.params.outputs.app-version }},app.cache.routes=${{ steps.params.outputs.cache-routes }},git.branch.name=${{ steps.params.outputs.branch-name }},git.commit.sha=${{ github.sha }},php.image.tag=${{ steps.params.outputs.php-image-tag }},image.type=production
           tags: |
             quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
             us.gcr.io/am-production-268015/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}

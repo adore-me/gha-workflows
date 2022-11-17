@@ -94,7 +94,7 @@ jobs:
           context: .
           file: ci/Dockerfile
           push: true
-          labels: app.version:${{ steps.release.outputs.tag_name }},app.cache.routes:${{ steps.project-cache-routes.outputs.data }},git.commit.sha:${{ github.sha }},php.image.tag:${{ steps.set-php-image.outputs.project-image-tag }},image.type:canary
+          labels: app.version=${{ steps.release.outputs.tag_name }},app.cache.routes=${{ steps.project-cache-routes.outputs.data }},git.commit.sha=${{ github.sha }},php.image.tag=${{ steps.set-php-image.outputs.project-image-tag }},image.type=canary
           tags: |
             quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
             us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
