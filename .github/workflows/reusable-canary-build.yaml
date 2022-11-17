@@ -92,7 +92,10 @@ jobs:
               cacheRoutes="${{ github.event.inputs.cache-routes }}"
             fi
           fi
-
+          
+          echo -e "${BL}Info:${NC} Branch Name $branchName"
+          echo "branch-name=$branchName" >> "$GITHUB_OUTPUT"
+          
           echo -e "${BL}Info:${NC} App Version $appVersion"
           echo "app-version=$appVersion" >> "$GITHUB_OUTPUT"
 
@@ -140,6 +143,7 @@ jobs:
           context: .
           file: ci/Dockerfile
           push: true
+          labels: app.version:${{ steps.params.outputs.app-version }},app.cache.routes:${{ steps.params.outputs.cache-routes }},git.branch.name:${{ steps.params.outputs.branch-name }},git.commit.sha:${{ github.sha }},php.image.tag:${{ steps.params.outputs.php-image-tag }},image.type:production
           tags: |
             quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
             us.gcr.io/am-production-268015/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
