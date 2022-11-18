@@ -104,8 +104,9 @@ jobs:
           enable-mysql: true
           enable-redis: true
           with-coverage: true
-          verbose: true
+          enable-workers: false
           run-suites: 'UnitTests'
+          verbose: true
   post-run-tasks:
     if: always()
     needs: [ build-application, static-checks, tests ]
