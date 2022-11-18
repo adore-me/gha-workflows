@@ -38,6 +38,7 @@ jobs:
         uses: adore-me/gha-composer@v2.0.6
         with:
           gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
+          cache: true
 
       - name: 'Build cache (cache built code)'
         uses: actions/cache@v3.0.11
