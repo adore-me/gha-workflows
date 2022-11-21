@@ -129,7 +129,7 @@ jobs:
         uses: adore-me/gha-composer@v2.0.6
         with:
           composer-no-dev: 'true'
-          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
+          gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
           cache: 'true'
 
       - name: 'Running extra commands'
