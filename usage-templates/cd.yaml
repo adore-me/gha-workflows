@@ -15,7 +15,7 @@ on:
 jobs:
   cd:
     name: 'CD'
-    uses: adore-me/gha-workflows/.github/workflows/php-reusable-cd.yaml@v2.2.9
+    uses: adore-me/gha-workflows/.github/workflows/php-reusable-cd.yaml@v2.2.10
     with:
       prod-gcp-project-id: am-production-268015
       create-jira-tickets: true
