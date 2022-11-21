@@ -24,7 +24,7 @@ on:
 jobs:
   canary-build:
     name: 'Canary Build'
-    uses: adore-me/gha-workflows/.github/workflows/reusable-canary-build.yaml@v2.2.10
+    uses: adore-me/gha-workflows/.github/workflows/reusable-canary-build.yaml@v2.2.11
     with:
       app-version: ${{ github.event.inputs.app-version }}
       php-image-tag: ${{ github.event.inputs.php-image-tag }}

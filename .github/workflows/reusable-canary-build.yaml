@@ -78,9 +78,10 @@ jobs:
             fi
           else
             branchName="${{ github.ref_name }}"
-
+            
+            appVersion="canary-${branchName//[^[:alnum:]]/}"
             if [ -n "${{ github.event.inputs.app-version }}" ]; then
-              appVersion="${{ github.event.inputs.app-version }}"
+              appVersion="canary-${{ github.event.inputs.app-version }}"
             fi
 
             phpTag="${{ steps.project-image-config.outputs.data }}"
