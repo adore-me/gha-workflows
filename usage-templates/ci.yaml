@@ -4,15 +4,6 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize, ready_for_review ]
     branches: [ main, master ]
-    paths-ignore:
-      - 'mkdocs.yml'
-      - 'catalog-info.yaml'
-      - 'README.md'
-      - 'local/**'
-      - 'ci/Jenkinsfile'
-      - 'ci/env.yml'
-      - 'ci/pipeline.yml'
-      - '.github/workflows/**'
 env:
   APP_BUILD_CACHE_KEY: build-${{ github.event.repository.name }}-${{ github.sha }}
 jobs:
