@@ -12,6 +12,11 @@ on:
         default: true
         required: false
         type: boolean
+      php-image-name:
+        description: 'PHP image name (ex: nginx-fpm-alpine)'
+        required: false
+        type: string
+        default: 'nginx-fpm-alpine'
     secrets:
       GH_OAUTH_TOKEN:
         required: true
@@ -68,6 +73,8 @@ jobs:
       - name: 'Set PHP image'
         id: set-php-image
         uses: adore-me/gha-image-setup@v1.1.2
+        with:
+          name: ${{ inputs.php-image-name }}
 
       - name: 'Composer Install'
         uses: adore-me/gha-composer@v2.0.6
