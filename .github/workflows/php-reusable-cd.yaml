@@ -17,6 +17,16 @@ on:
         required: false
         type: string
         default: 'nginx-fpm-alpine'
+      composer-self-update:
+        description: 'Run composer self-update'
+        required: false
+        type: boolean
+        default: false
+      composer-self-update-version:
+        description: 'Composer self-update version'
+        required: false
+        type: string
+        default: ''
     secrets:
       GH_OAUTH_TOKEN:
         required: true
@@ -77,8 +87,10 @@ jobs:
           name: ${{ inputs.php-image-name }}
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v2.0.6
+        uses: adore-me/gha-composer@v2.1.1
         with:
+          composer-self-update: ${{ inputs.composer-self-update }}
+          composer-self-update-version: ${{ inputs.composer-self-update-version }}
           composer-no-dev: 'true'
           cache: 'true'
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
