@@ -55,7 +55,7 @@ This workflow should be used to promote an `rc` image to a `prod` image.
   - `type`: **string**
   - `default`: **''**
   - `required`: **false**
-- `create-jira-ticket`: If true, a Jira ticket will be created when a release is created.
+- `create-jira-tickets`: If true, a Jira ticket will be created when a release is created.
   - `type`: **boolean**
   - `default`: **true**
   - `required`: **false**

@@ -27,11 +27,6 @@ on:
         required: false
         type: string
         default: ''
-      create-jira-ticket:
-        description: 'Create jira ticket'
-        default: true
-        required: false
-        type: boolean
     secrets:
       GH_OAUTH_TOKEN:
         required: true
@@ -131,7 +126,6 @@ jobs:
       tag: ${{ steps.release.outputs.tag_name }}
 
   create-jira-ticket:
-    if: ${{ inputs.create-jira-ticket }}
     name: 'Create JIRA ticket'
     needs: [ release ]
     runs-on: ubuntu-latest
