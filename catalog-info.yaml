@@ -4,7 +4,12 @@ metadata:
   name: gha-workflows
   annotations:
     github.com/project-slug: adore-me/gha-workflows
+    adoreme.com/team: Core
+    adoreme.com/jira-project-key: CORE
+    adoreme.com/create-dependabot-alerts-in-jira: "true"
+
+
 spec:
-  type: workflow
-  lifecycle: prod
-  owner: core-team
+  type: service
+  owner: Core
+  lifecycle: production
