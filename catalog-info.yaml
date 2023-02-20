@@ -10,6 +10,6 @@ metadata:
 
 
 spec:
-  type: service
-  owner: Core
-  lifecycle: production
+  type: workflow
+  lifecycle: prod
+  owner: core-team
