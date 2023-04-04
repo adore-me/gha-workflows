@@ -11,5 +11,5 @@ metadata:
 
 spec:
   type: workflow
-  lifecycle: prod
+  lifecycle: production
   owner: core-team
