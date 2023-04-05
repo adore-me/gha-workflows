@@ -50,6 +50,9 @@ jobs:
         run: |-
           docker tag ${{ steps.setup.outputs.uatImage }} ${{ steps.setup.outputs.gcrProdImage }}
           docker push ${{ steps.setup.outputs.gcrProdImage }}
+      - name: 'Summarize with Docker image Success'
+        run: |
+          echo 'Version `${{ github.event.inputs.version }}` promoted to PROD as `${{ steps.setup.outputs.promotedTag }}` by ${{ github.actor }}' >> $GITHUB_STEP_SUMMARY
       - name: Get release
         id: get-release
         uses: cardinalby/git-get-release-action@1.2.4
@@ -64,6 +67,4 @@ jobs:
           id: ${{ steps.get-release.outputs.id }}
           name: ${{ steps.setup.outputs.promotedTag }}
           replacename: true
-      - name: 'Summarize with Docker image Success'
-        run: |
-          echo "Version `${{ github.event.inputs.version }}` promoted to PROD as `${{ steps.setup.outputs.promotedTag }}`" >> $GITHUB_STEP_SUMMARY
+
