@@ -55,3 +55,6 @@ jobs:
           id: ${{ github.event.release.id }}
           name: "prod-${{ github.event.inputs.version }}"
           replacename: true
+      - name: 'Summarize with Docker image Success'
+        run: |
+          echo 'Version `${{ github.event.inputs.version }}` promoted to PROD as `prod-${{ github.event.inputs.version }}`' >> $GITHUB_STEP_SUMMARY
