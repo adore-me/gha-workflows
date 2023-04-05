@@ -50,11 +50,18 @@ jobs:
         run: |-
           docker tag ${{ steps.setup.outputs.uatImage }} ${{ steps.setup.outputs.gcrProdImage }}
           docker push ${{ steps.setup.outputs.gcrProdImage }}
+      - name: Get release
+        id: get-release
+        uses: cardinalby/git-get-release-action@1.2.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag: ${{ github.event.inputs.version }}
       - name: Update release
         uses: irongut/EditRelease@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          id: ${{ github.event.release.id }}
+          id: ${{ steps.get-release.outputs.id }}
           name: ${{ steps.setup.outputs.promotedTag }}
           replacename: true
       - name: 'Summarize with Docker image Success'
