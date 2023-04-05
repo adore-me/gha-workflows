@@ -34,10 +34,10 @@ jobs:
       - name: Setup
         id: setup
         run: |-
-          echo promotedTag=prod-${{ github.event.inputs.version }} >> $GITHUB_STATE
-          echo "uatImage=quay.io/adoreme/${{github.repository.name}}:${{ github.event.inputs.version }}" >> $GITHUB_STATE
-          echo "quayProdImage=quay.io/adoreme/${{github.repository.name}}:prod-${{ github.event.inputs.version }}" >> $GITHUB_STATE
-          echo "gcrProdImage=us.gcr.io/am-production-268015/${{github.repository.name}}:prod-${{ github.event.inputs.version }}" >> $GITHUB_STATE
+          echo "promotedTag=prod-${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          echo "uatImage=quay.io/adoreme/${{github.repository.name}}:${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          echo "quayProdImage=quay.io/adoreme/${{github.repository.name}}:prod-${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          echo "gcrProdImage=us.gcr.io/am-production-268015/${{github.repository.name}}:prod-${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
       - name: Pull image from Quay
         run: docker pull ${{ steps.setup.outputs.uatImage }}
       - name: Tag image for Quay and Push
@@ -57,4 +57,4 @@ jobs:
           replacename: true
       - name: 'Summarize with Docker image Success'
         run: |
-          echo 'Version `${{ github.event.inputs.version }}` promoted to PROD as `${{ steps.setup.outputs.promotedTag }}`' >> $GITHUB_STEP_SUMMARY
+          echo "Version `${{ github.event.inputs.version }}` promoted to PROD as `${{ steps.setup.outputs.promotedTag }}`" >> $GITHUB_STEP_SUMMARY
