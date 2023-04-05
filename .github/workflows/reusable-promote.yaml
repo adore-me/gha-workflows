@@ -31,28 +31,30 @@ jobs:
           registry: us.gcr.io
           username: _json_key
           password: ${{ secrets.GCR_CREDENTIALS }} # Use org secrets for this
-      - name: Setup ENV
+      - name: Setup
+        id: setup
         run: |-
-          UAT_IMAGE_TAG=quay.io/adoreme/${{github.repository.name}}:${{ github.event.inputs.version }}
-          QUAY_PROD_IMAGE_TAG=quay.io/adoreme/${{github.repository.name}}:prod-${{ github.event.inputs.version }}
-          GCR_PROD_IMAGE_TAG=us.gcr.io/am-production-268015/${{github.repository.name}}:prod-${{ github.event.inputs.version }}
+          echo promotedTag=prod-${{ github.event.inputs.version }} >> $GITHUB_STATE
+          echo "uatImage=quay.io/adoreme/${{github.repository.name}}:${{ github.event.inputs.version }}" >> $GITHUB_STATE
+          echo "quayProdImage=quay.io/adoreme/${{github.repository.name}}:prod-${{ github.event.inputs.version }}" >> $GITHUB_STATE
+          echo "gcrProdImage=us.gcr.io/am-production-268015/${{github.repository.name}}:prod-${{ github.event.inputs.version }}" >> $GITHUB_STATE
       - name: Pull image from Quay
-        run: docker pull $UAT_IMAGE_TAG
+        run: docker pull ${{ steps.setup.outputs.uatImage }}
       - name: Tag image for Quay and Push
         run: |-
-          docker tag $UAT_IMAGE_TAG $QUAY_PROD_IMAGE_TAG
-          docker push $QUAY_PROD_IMAGE_TAG
+          docker tag ${{ steps.setup.outputs.uatImage }} ${{ steps.setup.outputs.quayProdImage }}
+          docker push ${{ steps.setup.outputs.quayProdImage }}
       - name: Tag image for GCR and Push
         run: |-
-          docker tag $UAT_IMAGE_TAG $GCR_PROD_IMAGE_TAG
-          docker push $GCR_PROD_IMAGE_TAG
+          docker tag ${{ steps.setup.outputs.uatImage }} ${{ steps.setup.outputs.gcrProdImage }}
+          docker push ${{ steps.setup.outputs.gcrProdImage }}
       - name: Update release
         uses: irongut/EditRelease@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           id: ${{ github.event.release.id }}
-          name: "prod-${{ github.event.inputs.version }}"
+          name: ${{ steps.setup.outputs.promotedTag }}
           replacename: true
       - name: 'Summarize with Docker image Success'
         run: |
-          echo 'Version `${{ github.event.inputs.version }}` promoted to PROD as `prod-${{ github.event.inputs.version }}`' >> $GITHUB_STEP_SUMMARY
+          echo 'Version `${{ github.event.inputs.version }}` promoted to PROD as `${{ steps.setup.outputs.promotedTag }}`' >> $GITHUB_STEP_SUMMARY
