@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v3.5.2
         with:
           ref: ${{ github.event.client_payload.pull_request.head.ref && github.event.client_payload.pull_request.head.ref || github.ref_name }}
 
@@ -122,24 +122,24 @@ jobs:
 
       - name: 'Set PHP image'
         id: set-php-image
-        uses: adore-me/gha-image-setup@v1.1.2
+        uses: adore-me/gha-image-setup@v1.1.4
         with:
           tag: ${{ steps.params.outputs.php-image-tag }}
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v2.0.6
+        uses: adore-me/gha-composer@v2.1.2
         with:
           composer-no-dev: 'true'
           gh-oauth-token: ${{ secrets.GH_PRIVATE_ACTIONS_TOKEN }}
           cache: 'true'
 
       - name: 'Running extra commands'
-        uses: adore-me/gha-run-cmds@v1.1.1
+        uses: adore-me/gha-run-cmds@v1.1.5
         with:
           run-laravel-route-cache: ${{ steps.params.outputs.cache-routes }}
 
       - name: 'Docker build & push image'
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v3.3.1
         with:
           context: .
           file: ci/Dockerfile

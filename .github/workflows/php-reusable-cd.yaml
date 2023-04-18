@@ -54,11 +54,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v3.5.2
 
       - name: 'Create release'
         id: release
-        uses: rymndhng/release-on-push-action@v0.27.0
+        uses: rymndhng/release-on-push-action@v0.28.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -82,12 +82,12 @@ jobs:
 
       - name: 'Set PHP image'
         id: set-php-image
-        uses: adore-me/gha-image-setup@v1.1.2
+        uses: adore-me/gha-image-setup@v1.1.4
         with:
           name: ${{ inputs.php-image-name }}
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@v2.1.1
+        uses: adore-me/gha-composer@v2.1.2
         with:
           composer-self-update: ${{ inputs.composer-self-update }}
           composer-self-update-version: ${{ inputs.composer-self-update-version }}
@@ -103,12 +103,12 @@ jobs:
           key-path: '["prod-cache-routes"]'
 
       - name: 'Running extra commands'
-        uses: adore-me/gha-run-cmds@v1.1.4
+        uses: adore-me/gha-run-cmds@v1.1.5
         with:
           run-laravel-route-cache: ${{ steps.project-cache-routes.outputs.data }}
 
       - name: 'Docker build & push image'
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v3.3.1
         with:
           context: .
           file: ci/Dockerfile
@@ -131,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Find out if the update is made from a pull request; get the PR number'
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6.4.1
         if: inputs.create-jira-tickets
         id: pr-id
         with:
