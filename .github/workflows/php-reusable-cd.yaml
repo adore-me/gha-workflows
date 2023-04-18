@@ -97,7 +97,7 @@ jobs:
 
       - name: 'Get route cache option from CI config'
         id: project-cache-routes
-        uses: jbutcher5/read-yaml@main
+        uses: jbutcher5/read-yaml@2a31b15
         with:
           file: './ci/config.yaml'
           key-path: '["prod-cache-routes"]'
