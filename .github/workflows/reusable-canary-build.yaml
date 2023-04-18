@@ -44,7 +44,7 @@ jobs:
 
       - name: 'Get PHP image tag from CI config'
         id: project-image-config
-        uses: jbutcher5/read-yaml@2a31b15
+        uses: jbutcher5/read-yaml@2a31b155baf6e73f7b12fe49bbbc9e87ed3ccc6f
         with:
           file: './ci/config.yaml'
           key-path: '["image-tag"]'
