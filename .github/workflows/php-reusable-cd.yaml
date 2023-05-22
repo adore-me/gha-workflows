@@ -44,10 +44,7 @@ on:
         required: true
       SLACK_WEBHOOK:
         required: true
-      DEPLOYSBOT_HEADER:
-        required: true
-      DEPLOYSBOT_HEADER_VALUE:
-        required: true
+
 jobs:
   release:
     name: 'Release new version'
@@ -143,7 +140,7 @@ jobs:
             return pr
 
       - name: 'Create jira tickets and link items, send deployment notification'
-        uses: adore-me/github-action-deploysbot@v0.0.2
+        uses: adore-me/github-action-deploysbot@v1.0.0
         if: inputs.create-jira-tickets && steps.pr-id.outputs.result > 0
         with:
           JIRA_USER: ${{ secrets.JIRA_USER }}
@@ -153,5 +150,3 @@ jobs:
           GH_PR_NUMBER: ${{ steps.pr-id.outputs.result }}
           GH_TAG: ${{ needs.release.outputs.tag }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          DEPLOYSBOT_HEADER: ${{ secrets.DEPLOYSBOT_HEADER }}
-          DEPLOYSBOT_HEADER_VALUE: ${{ secrets.DEPLOYSBOT_HEADER_VALUE }}
