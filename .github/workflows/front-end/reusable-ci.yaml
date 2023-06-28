@@ -1,0 +1,70 @@
+name: 'Reusable CI workflow for front-end apps'
+
+on:
+  workflow_call:
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  build-application:
+    name: Build&Test Application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.5.2
+        with:
+          persist-credentials: false
+
+      - name: Read Config
+        uses: actions-tools/yaml-outputs@v2
+        id: config
+        with:
+          file-path: ci/config.yaml
+
+      - uses: actions/setup-node@v3.6.0
+        with:
+          node-version: ${{ steps.config.outputs.nodeVersion }}
+          cache: npm
+
+      - name: NPM install
+        id: npm-install
+        run: npm install
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Provision app config
+        id: provision-app-config
+        run: |
+          echo "useRootDotEnv: ${{ steps.config.outputs.useRootDotEnv }}"
+          if [ "${{ steps.config.outputs.useRootDotEnv }}" = "false" ]; then
+            cp ./src/env/env.dev.template ./src/env/env.ts
+
+            sed -i -e 's|APP_ENV|false|g' ./src/env/env.ts
+            sed -i -e 's|NAMESPACE|ci|g' ./src/env/env.ts
+          else
+            cp .env.template .env
+
+            sed -i -e 's|{NAMESPACE}|ci|g' .env
+            sed -i -e 's|{PROTOCOL}|http|g' .env
+            sed -i -e 's|{ENV}|ci|g' .env
+          fi
+
+      - name: NPM build
+        id: npm-build
+        run: npm run build:ci
+
+      - name: NPM test
+        if: ${{ steps.config.outputs.runTests == 'true' }}
+        id: npm-test
+        run: |
+          npm run test:ci
+
+# Need more work here. There are 2 frameworks for testing: jest and karma.
+# We need some examples for both of them to go forward.
+#      - name: Handle tests output
+#        run: |
+#          if [ "${{ steps.config.outputs.runTests }}" = "true" ]; then
+#            echo "Tests output:"
+#            cat ${{ steps.npm-test.outputs.testOutputPath }}
+#          fi
