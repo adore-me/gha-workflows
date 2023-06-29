@@ -52,13 +52,13 @@ jobs:
 
       - name: NPM build
         id: npm-build
-        run: npm run build:ci
+        run: npm run ci:build
 
       - name: NPM test
         if: ${{ steps.config.outputs.runTests == 'true' }}
         id: npm-test
         run: |
-          npm run test:ci
+          npm run ci:test
 
 # Need more work here. There are 2 frameworks for testing: jest and karma.
 # We need some examples for both of them to go forward.

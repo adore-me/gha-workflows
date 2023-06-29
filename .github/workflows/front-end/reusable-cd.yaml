@@ -1,0 +1,145 @@
+name: 'Reusable continuous deployment workflow'
+
+on:
+  workflow_call:
+    inputs:
+      prod-gcp-project-id:
+        description: 'GCP project ID for production'
+        required: true
+        type: string
+      create-jira-tickets:
+        description: 'Create jira tickets and link items based on commit history'
+        default: true
+        required: false
+        type: boolean
+    secrets:
+      GH_OAUTH_TOKEN:
+        required: true
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      GCR_CREDENTIALS:
+        required: true
+      JIRA_USER:
+        required: true
+      JIRA_PASSWORD:
+        required: true
+      JIRA_URI:
+        required: true
+      SLACK_WEBHOOK:
+        required: true
+      DEPLOYSBOT_HEADER:
+        required: true
+      DEPLOYSBOT_HEADER_VALUE:
+        required: true
+      NPM_TOKEN:
+        required: true
+jobs:
+  release:
+    name: 'Release new version'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3.5.2
+
+      - name: 'Create release'
+        id: release
+        uses: rymndhng/release-on-push-action@v0.28.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          use_github_release_notes: true
+          bump_version_scheme: patch
+          tag_prefix: v
+
+      - name: 'Login Docker registry (Quay)'
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USER }} # Use org secrets for this
+          password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
+
+      - name: 'Login backup Docker registry (GCR)'
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: us.gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_CREDENTIALS }} # Use org secrets for this
+
+      - name: Read Config
+        uses: actions-tools/yaml-outputs@v2
+        id: config
+        with:
+          file-path: ci/config.yaml
+
+      - uses: actions/setup-node@v3.6.0
+        with:
+          node-version: ${{ steps.config.outputs.nodeVersion }}
+          cache: npm
+
+      - name: Provision app config
+        id: provision-app-config
+        run: |
+          echo "useRootDotEnv: ${{ steps.config.outputs.useRootDotEnv }}"
+          if [ "${{ steps.config.outputs.useRootDotEnv }}" = "false" ]; then
+            cp ./src/env/env.dev.template ./src/env/env.ts
+
+            sed -i -e 's|APP_ENV|true|g' ./src/env/env.ts
+          else
+            cp .env.template .env
+
+            sed -i -e 's|{PROTOCOL}|https|g' .env
+            sed -i -e 's|{NAMESPACE}||g' .env
+            sed -i -e 's|{ENV}|prd|g' .env
+          fi
+
+      - name: 'Docker build & push image'
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: .
+          file: ci/Dockerfile
+          push: true
+          build-args: |
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            NODE_VERSION=${{ steps.config.outputs.nodeVersion }}
+          labels: |
+            app.version=${{ steps.release.outputs.tag_name }}
+            git.commit.sha=${{ github.sha }}
+            image.type=production
+          tags: |
+            quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
+            us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
+    outputs:
+      tag: ${{ steps.release.outputs.tag_name }}
+
+  create-jira-ticket:
+    name: 'Create JIRA ticket'
+    needs: [ release ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Find out if the update is made from a pull request; get the PR number'
+        uses: actions/github-script@v6.4.1
+        if: inputs.create-jira-tickets
+        id: pr-id
+        with:
+          result-encoding: string
+          script: |
+            const msg = (context.payload.head_commit.message).match(/#\d+/);
+            let pr= Array.isArray(msg) ? parseInt(msg[0].replace('#','')) : 0
+            console.log("this is pr number: " + pr)
+            return pr
+
+      - name: 'Create jira tickets and link items, send deployment notification'
+        uses: adore-me/github-action-deploysbot@v0.0.2
+        if: inputs.create-jira-tickets && steps.pr-id.outputs.result > 0
+        with:
+          JIRA_USER: ${{ secrets.JIRA_USER }}
+          JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+          JIRA_URI: ${{ secrets.JIRA_URI }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PR_NUMBER: ${{ steps.pr-id.outputs.result }}
+          GH_TAG: ${{ needs.release.outputs.tag }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          DEPLOYSBOT_HEADER: ${{ secrets.DEPLOYSBOT_HEADER }}
+          DEPLOYSBOT_HEADER_VALUE: ${{ secrets.DEPLOYSBOT_HEADER_VALUE }}
