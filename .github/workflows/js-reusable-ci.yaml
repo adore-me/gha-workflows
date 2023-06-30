@@ -151,9 +151,9 @@ jobs:
           install: true
           build: npm run ci:build
           start: npm run start
-          wait-on: "http://127.0.0.1:${{ needs.read-config.outputs.cypress-port }}"
+          wait-on: "http://127.0.0.1:${{ needs.read-config.outputs.cypressPort }}"
           wait-on-timeout: 120
-          command: npx ${{ needs.read-config.outputs.cypress-currentsLib }} ${{ needs.read-config.outputs.cypress-flags }} --key ${{ secrets.CYPRESS_CURRENTS_RECORD_KEY }} --ci-build-id ${{ github.repository }}-${{ github.run_id }}-${{ github.run_attempt}}
+          command: npx ${{ needs.read-config.outputs.cypressCurrentsLib }} ${{ needs.read-config.outputs.cypressFlags }} --key ${{ secrets.CYPRESS_CURRENTS_RECORD_KEY }} --ci-build-id ${{ github.repository }}-${{ github.run_id }}-${{ github.run_attempt}}
           ci-build-id: ${{ github.repository }}-${{ github.run_id }}-${{ github.run_attempt}}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
