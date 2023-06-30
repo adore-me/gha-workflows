@@ -142,8 +142,7 @@ jobs:
             sed -i -e 's|{ENV}|ci|g' .env
           fi
 
-      # Install NPM dependencies, cache them correctly
-      # and run all Cypress tests
+      # Install NPM dependencies and run all Cypress tests
       - name: Cypress run
         id: cypress-run
         uses: cypress-io/github-action@v5.8.3
