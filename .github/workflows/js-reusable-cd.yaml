@@ -81,17 +81,22 @@ jobs:
       - name: Provision app config
         id: provision-app-config
         run: |
-          echo "useRootDotEnv: ${{ steps.config.outputs.useRootDotEnv }}"
-          if [ "${{ steps.config.outputs.useRootDotEnv }}" = "false" ]; then
-            cp ./src/env/env.dev.template ./src/env/env.ts
+          # Colors
+          BL='\033[0;34m'
+          if test -f ".env.template"; then
+            echo -e "${BL}Info:${NC} Using env .env.template"
 
-            sed -i -e 's|APP_ENV|true|g' ./src/env/env.ts
-          else
             cp .env.template .env
 
             sed -i -e 's|{PROTOCOL}|https|g' .env
             sed -i -e 's|{NAMESPACE}||g' .env
             sed -i -e 's|{ENV}|prd|g' .env
+          else
+            echo -e "${BL}Info:${NC} Using env ./src/env/env.dev.template"
+
+            cp ./src/env/env.prd.template ./src/env/env.ts
+
+            sed -i -e 's|APP_ENV|true|g' ./src/env/env.ts
           fi
 
       - name: 'Docker build & push image'

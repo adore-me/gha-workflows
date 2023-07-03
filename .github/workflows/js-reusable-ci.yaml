@@ -131,18 +131,23 @@ jobs:
       - name: Provision app config
         id: provision-app-config
         run: |
-          echo "useRootDotEnv: ${{ needs.read-config.outputs.useRootDotEnv }}"
-          if [ "${{ needs.read-config.outputs.useRootDotEnv }}" = "false" ]; then
-            cp ./src/env/env.dev.template ./src/env/env.ts
+          # Colors
+          BL='\033[0;34m'
+          if test -f ".env.template"; then
+            echo -e "${BL}Info:${NC} Using env .env.template"
 
-            sed -i -e 's|APP_ENV|false|g' ./src/env/env.ts
-            sed -i -e 's|NAMESPACE|ci|g' ./src/env/env.ts
-          else
             cp .env.template .env
 
             sed -i -e 's|{NAMESPACE}|ci|g' .env
             sed -i -e 's|{PROTOCOL}|http|g' .env
             sed -i -e 's|{ENV}|ci|g' .env
+          else
+            echo -e "${BL}Info:${NC} Using env ./src/env/env.dev.template"
+
+            cp ./src/env/env.dev.template ./src/env/env.ts
+
+            sed -i -e 's|APP_ENV|false|g' ./src/env/env.ts
+            sed -i -e 's|NAMESPACE|ci|g' ./src/env/env.ts
           fi
 
       # Install NPM dependencies and run all Cypress tests
