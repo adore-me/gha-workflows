@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       nodeVersion: ${{ steps.config.outputs.nodeVersion }}
-      useRootDotEnv: ${{ steps.config.outputs.useRootDotEnv }}
       runTests: ${{ steps.config.outputs.runTests }}
       cypressEnabled: ${{ steps.config.outputs.cypress-enabled }}
       cypressPort: ${{ steps.config.outputs.cypress-port }}
@@ -37,7 +36,6 @@ jobs:
           BL='\033[0;34m'
           NC='\033[0m'
           echo -e "${BL}Info:${NC} nodeVersion: ${{ steps.config.outputs.nodeVersion }}"
-          echo -e "${BL}Info:${NC} useRootDotEnv: ${{ steps.config.outputs.useRootDotEnv }}"
           echo -e "${BL}Info:${NC} runTests: ${{ steps.config.outputs.runTests }}"
           echo -e "${BL}Info:${NC} cypressEnabled: ${{ steps.config.outputs.cypress-enabled }}"
           echo -e "${BL}Info:${NC} cypressPort: ${{ steps.config.outputs.cypress-port }}"
@@ -69,18 +67,23 @@ jobs:
       - name: Provision app config
         id: provision-app-config
         run: |
-          echo "useRootDotEnv: ${{ needs.read-config.outputs.useRootDotEnv }}"
-          if [ "${{ needs.read-config.outputs.useRootDotEnv }}" = "false" ]; then
-            cp ./src/env/env.dev.template ./src/env/env.ts
-
-            sed -i -e 's|APP_ENV|false|g' ./src/env/env.ts
-            sed -i -e 's|NAMESPACE|ci|g' ./src/env/env.ts
-          else
+          # Colors
+          BL='\033[0;34m'
+          if test -f ".env.template"; then
+            echo -e "${BL}Info:${NC} Using env .env.template"
+          
             cp .env.template .env
 
             sed -i -e 's|{NAMESPACE}|ci|g' .env
             sed -i -e 's|{PROTOCOL}|http|g' .env
             sed -i -e 's|{ENV}|ci|g' .env
+          else
+            echo -e "${BL}Info:${NC} Using env ./src/env/env.dev.template"
+          
+            cp ./src/env/env.dev.template ./src/env/env.ts
+
+            sed -i -e 's|APP_ENV|false|g' ./src/env/env.ts
+            sed -i -e 's|NAMESPACE|ci|g' ./src/env/env.ts
           fi
 
       - name: NPM build
