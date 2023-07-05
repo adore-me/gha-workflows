@@ -29,10 +29,6 @@ on:
         required: true
       SLACK_WEBHOOK:
         required: true
-      DEPLOYSBOT_HEADER:
-        required: true
-      DEPLOYSBOT_HEADER_VALUE:
-        required: true
       NPM_TOKEN:
         required: true
 jobs:
