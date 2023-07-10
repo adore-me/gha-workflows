@@ -49,6 +49,13 @@ jobs:
           file: './ci/config.yaml'
           key-path: '["image-tag"]'
 
+      - name: 'Get cache routes param from CI config'
+        id: cache-routes-config
+        uses: adore-me/read-yaml@v1.0.0
+        with:
+          file: './ci/config.yaml'
+          key-path: '["prod-cache-routes"]'
+
       - name: 'Set params'
         id: params
         run: |
@@ -73,6 +80,7 @@ jobs:
               phpTag="${{ github.event.client_payload.slash_command.args.named.php-image-tag }}"
             fi
 
+            cacheRoutes="${{ steps.cache-routes-config.outputs.data }}"
             if [ -n "${{ github.event.client_payload.slash_command.args.named.cache-routes }}" ]; then
               cacheRoutes="${{ github.event.client_payload.slash_command.args.named.cache-routes }}"
             fi
@@ -89,6 +97,7 @@ jobs:
               phpTag="${{ github.event.inputs.php-image-tag }}"
             fi
 
+            cacheRoutes="${{ steps.cache-routes-config.outputs.data }}"
             if [ -n "${{ github.event.inputs.cache-routes }}" ]; then
               cacheRoutes="${{ github.event.inputs.cache-routes }}"
             fi
