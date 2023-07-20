@@ -58,9 +58,14 @@ jobs:
           node-version: ${{ needs.read-config.outputs.nodeVersion }}
           cache: npm
 
+      - name: Authenticate with private NPM package
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "unsafe-perm=true" >> .npmrc
+
       - name: NPM install
         id: npm-install
-        run: npm install
+        run: npm ci
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
