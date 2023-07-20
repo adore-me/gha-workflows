@@ -3,7 +3,7 @@ name: 'Reusable CI workflow for front-end apps'
 on:
   workflow_call:
     secrets:
-      NPM_TOKEN_NEW:
+      NPM_TOKEN:
         required: true
       CYPRESS_CURRENTS_RECORD_KEY:
         required: true
@@ -60,14 +60,14 @@ jobs:
 
       - name: Authenticate with private NPM package
         run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_NEW }}" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           echo "unsafe-perm=true" >> .npmrc
 
       - name: NPM install
         id: npm-install
         run: npm ci
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Provision app config
         id: provision-app-config
@@ -168,7 +168,7 @@ jobs:
           command: npx ${{ needs.read-config.outputs.cypressCurrentsLib }} ${{ needs.read-config.outputs.cypressFlags }} --key ${{ secrets.CYPRESS_CURRENTS_RECORD_KEY }} --ci-build-id ${{ github.repository }}-${{ github.run_id }}-${{ github.run_attempt}}
           ci-build-id: ${{ github.repository }}-${{ github.run_id }}-${{ github.run_attempt}}
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_NEW }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_CURRENTS_RECORD_KEY }}
           DEBUG: '@cypress/github-action'
