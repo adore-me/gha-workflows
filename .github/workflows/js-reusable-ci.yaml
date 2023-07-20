@@ -60,8 +60,7 @@ jobs:
 
       - name: Authenticate with private NPM package
         run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
-          echo "unsafe-perm=true" >> .npmrc
+          echo ${{ secrets.NPM_RC_FILE }} > .npmrc
 
       - name: NPM install
         id: npm-install
