@@ -41,6 +41,7 @@ jobs:
           echo -e "${BL}Info:${NC} cypressPort: ${{ steps.config.outputs.cypress-port }}"
           echo -e "${BL}Info:${NC} cypressCurrentsLib: ${{ steps.config.outputs.cypress-currentsLib }}"
           echo -e "${BL}Info:${NC} cypressFlags: ${{ steps.config.outputs.cypress-flags }}"
+          echo -e "${BL}Info:${NC} installCommand: ${{ steps.config.outputs.installCommand }}"
 
   build-application:
     name: Build&Test Application
@@ -65,7 +66,13 @@ jobs:
 
       - name: NPM install
         id: npm-install
-        run: npm ci
+        run: |
+          INSTALL_CMD="{{ steps.config.outputs.installCommand }}"
+          if [[ -z {{ steps.config.outputs.installCommand }} ]]; then
+            npm ci
+          else
+            npm ${{ steps.config.outputs.installCommand }}
+          fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
