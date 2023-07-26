@@ -19,6 +19,8 @@ jobs:
       cypressPort: ${{ steps.config.outputs.cypress-port }}
       cypressCurrentsLib: ${{ steps.config.outputs.cypress-currentsLib }}
       cypressFlags: ${{ steps.config.outputs.cypress-flags }}
+      installCommand: ${{ steps.config.outputs.installCommand }}
+      suppressProcessEnvCI: ${{ steps.config.outputs.suppressProcessEnvCI }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.2
@@ -41,6 +43,8 @@ jobs:
           echo -e "${BL}Info:${NC} cypressPort: ${{ steps.config.outputs.cypress-port }}"
           echo -e "${BL}Info:${NC} cypressCurrentsLib: ${{ steps.config.outputs.cypress-currentsLib }}"
           echo -e "${BL}Info:${NC} cypressFlags: ${{ steps.config.outputs.cypress-flags }}"
+          echo -e "${BL}Info:${NC} installCommand: ${{ steps.config.outputs.installCommand }}"
+          echo -e "${BL}Info:${NC} suppressProcessEnvCI: ${{ steps.config.outputs.suppressProcessEnvCI }}"
 
   build-application:
     name: Build&Test Application
@@ -65,7 +69,14 @@ jobs:
 
       - name: NPM install
         id: npm-install
-        run: npm ci
+        run: |
+          INSTALL_CMD="${{ needs.read-config.outputs.installCommand }}"
+          echo "INSTALL_CMD: $INSTALL_CMD"
+          if [ -z "$INSTALL_CMD" ]; then
+            npm ci
+          else
+            $INSTALL_CMD
+          fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -93,7 +104,17 @@ jobs:
 
       - name: NPM build
         id: npm-build
-        run: npm run ci:build
+        run: |
+          SUPRESS_ENV_CI="${{ needs.read-config.outputs.suppressProcessEnvCI }}"
+          if [ -n "$SUPRESS_ENV_CI" ] && [ "$SUPRESS_ENV_CI" = "true" ]; then
+            export CI=false
+          fi
+          
+          npm run ci:build
+          
+          if [ -n "$SUPRESS_ENV_CI" ] && [ "$SUPRESS_ENV_CI" = "true" ]; then
+            export CI=true
+          fi
 
       - name: NPM test
         if: ${{ needs.read-config.outputs.runTests == 'true' }}
