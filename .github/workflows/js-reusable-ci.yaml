@@ -68,10 +68,11 @@ jobs:
         id: npm-install
         run: |
           INSTALL_CMD="{{ steps.config.outputs.installCommand }}"
+          echo "INSTALL_CMD: $INSTALL_CMD"
           if [[ -z "$INSTALL_CMD" ]]; then
             npm ci
           else
-            npm ${{ steps.config.outputs.installCommand }}
+            ${{ steps.config.outputs.installCommand }}
           fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
