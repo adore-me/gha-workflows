@@ -68,7 +68,7 @@ jobs:
       - name: NPM install
         id: npm-install
         run: |
-          INSTALL_CMD="${{ steps.config.outputs.installCommand }}"
+          INSTALL_CMD="${{ needs.read-config.outputs.installCommand }}"
           echo "INSTALL_CMD: $INSTALL_CMD"
           if [ -z "$INSTALL_CMD" ]; then
             npm ci
