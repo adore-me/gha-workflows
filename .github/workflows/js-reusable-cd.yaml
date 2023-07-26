@@ -71,7 +71,7 @@ jobs:
         with:
           file-path: ci/config.yaml
 
-      - uses: actions/setup-node@v3.6.0
+      - uses: actions/setup-node@v3.7.0
         with:
           node-version: ${{ steps.config.outputs.nodeVersion }}
           cache: npm

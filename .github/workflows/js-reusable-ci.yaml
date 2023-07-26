@@ -128,7 +128,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@v3.6.0
+      - uses: actions/setup-node@v3.7.0
         with:
           node-version: ${{ needs.read-config.outputs.nodeVersion }}
           cache: npm
