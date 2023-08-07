@@ -89,12 +89,18 @@ jobs:
             sed -i -e 's|{PROTOCOL}|https|g' .env
             sed -i -e 's|{NAMESPACE}||g' .env
             sed -i -e 's|{ENV}|prd|g' .env
-          else
+          elif [[ -f "./src/env/env.prd.template" ]]; then
             echo -e "${BL}Info:${NC} Using env ./src/env/env.prd.template"
 
             cp ./src/env/env.prd.template ./src/env/env.ts
 
             sed -i -e 's|APP_ENV|true|g' ./src/env/env.ts
+          elif [[ -f "./env/prod.json" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./env/prod.json"
+
+            cp ./env/prod.json ./env/env.json
+          else
+            echo -e "${BL}Info:${NC} No env file found"
           fi
 
       - name: 'Docker build & push image'
