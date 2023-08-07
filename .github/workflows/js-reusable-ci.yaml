@@ -82,13 +82,20 @@ jobs:
             sed -i -e 's|{NAMESPACE}|ci|g' .env
             sed -i -e 's|{PROTOCOL}|http|g' .env
             sed -i -e 's|{ENV}|ci|g' .env
-          else
+          elif [[ -f "./src/env/env.dev.template" ]]; then
             echo -e "${BL}Info:${NC} Using env ./src/env/env.dev.template"
           
             cp ./src/env/env.dev.template ./src/env/env.ts
 
             sed -i -e 's|APP_ENV|false|g' ./src/env/env.ts
             sed -i -e 's|NAMESPACE|ci|g' ./src/env/env.ts
+          elif [[ -f "./env/staging.json" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./env/staging.json"
+          
+            cp -R ./env/staging.json ./env/env.json
+            sed -i -e 's|NAMESPACE|ci|g' ./env/env.json
+          else
+            echo -e "${BL}Info:${NC} Using default env"
           fi
 
       - name: NPM build
