@@ -105,6 +105,10 @@ jobs:
           
             cp -R ./env/staging.json ./env/env.json
             sed -i -e 's|NAMESPACE|ci|g' ./env/env.json
+          elif [[ -f "./env/staging.env.json" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./env/staging.env.json"
+          
+            cp -R ./env/staging.env.json ./env/env.json
           else
             echo -e "${BL}Info:${NC} Using default env"
           fi
