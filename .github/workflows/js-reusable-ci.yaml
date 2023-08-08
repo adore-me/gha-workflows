@@ -90,9 +90,9 @@ jobs:
           
             cp .env.template .env
 
-            sed -i -e 's|{NAMESPACE}|ci|g' .env
-            sed -i -e 's|{PROTOCOL}|http|g' .env
-            sed -i -e 's|{ENV}|ci|g' .env
+            sed -i -e 's|NAMESPACE|ci|g' .env
+            sed -i -e 's|PROTOCOL|http|g' .env
+            sed -i -e 's|ENV|ci|g' .env
           elif [[ -f "./src/env/env.dev.template" ]]; then
             echo -e "${BL}Info:${NC} Using env ./src/env/env.dev.template"
           
