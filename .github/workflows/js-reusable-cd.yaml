@@ -86,9 +86,9 @@ jobs:
 
             cp .env.template .env
 
-            sed -i -e 's|PROTOCOL|https|g' .env
-            sed -i -e 's|NAMESPACE||g' .env
-            sed -i -e 's|ENV|prd|g' .env
+            sed -i -e 's|{PROTOCOL}|https|g' .env
+            sed -i -e 's|{NAMESPACE}||g' .env
+            sed -i -e 's|{ENV}|prd|g' .env
           elif [[ -f "./src/env/env.prd.template" ]]; then
             echo -e "${BL}Info:${NC} Using env ./src/env/env.prd.template"
 
