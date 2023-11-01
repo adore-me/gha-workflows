@@ -27,6 +27,11 @@ on:
         required: false
         type: string
         default: ''
+      slack-channel:
+        description: 'Slack channel for error notifications'
+        required: true
+        type: string
+        default: ''
     secrets:
       GH_OAUTH_TOKEN:
         required: true
@@ -131,7 +136,7 @@ jobs:
         with:
           status: ${{ job.status }}
           config: .github/workflows/config/slack.yml
-          channel: '#deploys-kube-test'
+          channel: ${{ inputs.slack-channel }}
           steps: ${{ toJson(steps) }}
         if: failure()
         env:
