@@ -51,6 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
+        id: checkout
         uses: actions/checkout@v3.5.2
 
       - name: 'Create release'
@@ -64,6 +65,7 @@ jobs:
           tag_prefix: v
 
       - name: 'Login Docker registry (Quay)'
+        id: login-quay
         uses: docker/login-action@v2.1.0
         with:
           registry: quay.io
@@ -71,6 +73,7 @@ jobs:
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
 
       - name: 'Login backup Docker registry (GCR)'
+        id: login-backup-gcr
         uses: docker/login-action@v2.1.0
         with:
           registry: us.gcr.io
@@ -84,6 +87,7 @@ jobs:
           name: ${{ inputs.php-image-name }}
 
       - name: 'Composer Install'
+        id: composer-install
         uses: adore-me/gha-composer@v2.1.2
         with:
           composer-self-update: ${{ inputs.composer-self-update }}
@@ -100,11 +104,13 @@ jobs:
           key-path: '["prod-cache-routes"]'
 
       - name: 'Running extra commands'
+        id: run-extra-commands
         uses: adore-me/gha-run-cmds@v1.1.5
         with:
           run-laravel-route-cache: ${{ steps.project-cache-routes.outputs.data }}
 
       - name: 'Docker build & push image'
+        id: docker-build-push
         uses: docker/build-push-action@v3.3.1
         with:
           context: .
@@ -119,6 +125,18 @@ jobs:
           tags: |
             quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
             us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
+
+      - name: Send data to Slack workflow
+        uses: act10ns/slack@v2
+        with:
+          status: ${{ job.status }}
+          config: .github/workflows/config/slack.yml
+          channel: '#deploys-kube-test'
+          steps: ${{ toJson(steps) }}
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/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'
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
     outputs:
       tag: ${{ steps.release.outputs.tag_name }}
 
