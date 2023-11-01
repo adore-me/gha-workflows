@@ -135,7 +135,7 @@ jobs:
           steps: ${{ toJson(steps) }}
         if: failure()
         env:
-          SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/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'
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
     outputs:
       tag: ${{ steps.release.outputs.tag_name }}
