@@ -1,4 +1,4 @@
-name: Cleanup Build Cache
+name: Reusable Cleanup Build Cache
 on:
   workflow_call:
     secrets:
