@@ -115,6 +115,7 @@ jobs:
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             NODE_VERSION=${{ steps.config.outputs.nodeVersion }}
+            GCP_SA_CREDENTIALS=${{ secrets.GCP_SA_CREDENTIALS }}
           labels: |
             app.version=${{ steps.release.outputs.tag_name }}
             git.commit.sha=${{ github.sha }}
