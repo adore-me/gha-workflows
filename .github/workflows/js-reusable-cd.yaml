@@ -31,6 +31,8 @@ on:
         required: true
       NPM_TOKEN:
         required: true
+      GCP_SA_CREDENTIALS:
+        required: false
 jobs:
   release:
     name: 'Release new version'
