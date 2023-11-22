@@ -120,7 +120,7 @@ jobs:
             COMPOSER_TOKEN=${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
           labels: |
             app.version=${{ steps.release.outputs.tag_name }}
-            app.cache.routes=${{ steps.project-cache-routes.outputs.data }}
+            app.cache.routes=${{ steps.config.outputs.run-laravel-route-cache }}
             git.commit.sha=${{ github.sha }}
             php.image.tag=${{ steps.set-php-image.outputs.project-image-tag }}
             image.type=production
