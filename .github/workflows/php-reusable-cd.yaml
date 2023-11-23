@@ -107,7 +107,7 @@ jobs:
         with:
           gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
 
-      - name: 'Composer Install in Dockerfile'
+      - name: 'Build and push'
         id: docker-build-push
         uses: docker/build-push-action@v5.0.0
         with:
@@ -118,7 +118,7 @@ jobs:
             IMAGE_TAG=${{ steps.set-php-image.outputs.project-image }} 
             SELF_UPDATE=${{ inputs.composer-self-update }}
             NO_DEV=${{ inputs.composer-no-dev }} 
-            INPUT_RUN_LARAVEL_ROUTE_CACHE=${{ steps.config.outputs.run-laravel-route-cache }}
+            RUN_LARAVEL_ROUTE_CACHE=${{ steps.config.outputs.run-laravel-route-cache }}
           secrets: |
             COMPOSER_TOKEN=${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
           labels: |
@@ -130,47 +130,6 @@ jobs:
           tags: |
             quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
             us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
-#          outputs: type=tar, dest=./docker-build-push-output.tar
-
-#      - name: 'Composer Install'
-#        id: composer-install
-#        uses: adore-me/gha-composer@v2.1.2
-#        with:
-#          composer-self-update: ${{ inputs.composer-self-update }}
-#          composer-self-update-version: ${{ inputs.composer-self-update-version }}
-#          composer-no-dev: 'true'
-#          cache: 'true'
-#          gh-oauth-token: ${{ secrets.GH_OAUTH_TOKEN }}
-
-#      - name: 'Get route cache option from CI config'
-#        id: project-cache-routes
-#        uses: adore-me/read-yaml@v1.0.0
-#        with:
-#          file: './ci/config.yaml'
-#          key-path: '["prod-cache-routes"]'
-
-#      - name: 'Running extra commands'
-#        id: run-extra-commands
-#        uses: adore-me/gha-run-cmds@v1.1.5
-#        with:
-#          run-laravel-route-cache: ${{ steps.config.outputs.run-laravel-route-cache }}
-
-#      - name: 'Docker build & push image'
-#        id: docker-build-push
-#        uses: docker/build-push-action@v3.3.1
-#        with:
-#          context: .
-#          file: ci/Dockerfile
-#          push: true
-#          labels: |
-#            app.version=${{ steps.release.outputs.tag_name }}
-#            app.cache.routes=${{ steps.project-cache-routes.outputs.data }}
-#            git.commit.sha=${{ github.sha }}
-#            php.image.tag=${{ steps.set-php-image.outputs.project-image-tag }}
-#            image.type=production
-#          tags: |
-#            quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
-#            us.gcr.io/${{ inputs.prod-gcp-project-id }}/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
 
       - name: Send data to Slack workflow
         uses: act10ns/slack@v2
