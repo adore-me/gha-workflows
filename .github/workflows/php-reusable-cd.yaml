@@ -114,8 +114,11 @@ jobs:
           context: .
           file: ci/Dockerfile
           push: true
-          build-args: IMAGE_TAG=${{ steps.set-php-image.outputs.project-image }} SELF_UPDATE=${{ inputs.composer-self-update }} \
-            NO_DEV=${{ inputs.composer-no-dev }} INPUT_RUN_LARAVEL_ROUTE_CACHE=${{ steps.config.outputs.run-laravel-route-cache }}
+          build-args: |
+            IMAGE_TAG=${{ steps.set-php-image.outputs.project-image }} 
+            SELF_UPDATE=${{ inputs.composer-self-update }}
+            NO_DEV=${{ inputs.composer-no-dev }} 
+            INPUT_RUN_LARAVEL_ROUTE_CACHE=${{ steps.config.outputs.run-laravel-route-cache }}
           secrets: |
             COMPOSER_TOKEN=${{ secrets.GH_PRIVATE_ACTIONS_TOKEN_OLD_FORMAT }}
           labels: |
