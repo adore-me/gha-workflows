@@ -121,6 +121,8 @@ jobs:
             RUN_LARAVEL_ROUTE_CACHE=${{ steps.config.outputs.run-laravel-route-cache }}
           secrets: |
             COMPOSER_TOKEN=${{ secrets.GH_OAUTH_TOKEN }}
+          cache-from: type=gha
+          cache-to: type=gha
           labels: |
             app.version=${{ steps.release.outputs.tag_name }}
             app.cache.routes=${{ steps.config.outputs.run-laravel-route-cache }}
