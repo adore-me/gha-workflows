@@ -13,6 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Deleting cache related to PR
+        id: cleanup-cache
         run: |
           # Get complete cache list
           cache_list=$(curl -L \
@@ -22,9 +23,13 @@ jobs:
           https://api.github.com/repos/adore-me/${{ github.event.repository.name }}/actions/caches | jq -r '.actions_caches[].key')
           echo -e "Cache list:\n$cache_list"
           echo ""
+          if [[ -z $cache_list ]]; then
+            echo "::warning::No cache found"
+            exit 0
+          fi
           
           # Get complete cache list related to PR
-          cache_list_pr=$(echo "$cache_list" | grep "${{github.event.number}}")
+          cache_list_pr=$(echo "$cache_list" | grep -e "-${{github.event.number}}-")
           if [[ -n $cache_list_pr ]]; then
             echo -e "Cache list related to pr:\n$cache_list_pr"
             echo ""
