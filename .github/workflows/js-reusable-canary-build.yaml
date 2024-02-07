@@ -1,0 +1,155 @@
+name: 'Reusable js canary build'
+
+on:
+  workflow_call:
+    inputs:
+      app-version:
+        description: 'Application version to build (ex: v2.1.4-canary). Defaults to branch name.'
+        required: false
+        type: string
+        default: ''
+    secrets:
+      GH_OAUTH_TOKEN:
+        required: true
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      GCR_CREDENTIALS:
+        required: true
+      NPM_TOKEN:
+        required: true
+      GCP_SA_CREDENTIALS:
+        required: false
+
+jobs:
+  canary-build:
+    name: 'Canary Build'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3.5.2
+        with:
+          ref: ${{ github.event.client_payload.pull_request.head.ref && github.event.client_payload.pull_request.head.ref || github.ref_name }}
+
+      - name: 'Set params'
+        id: params
+        run: |
+          GR='\033[0;32m'
+          BL='\033[0;34m'
+          NC='\033[0;34m'
+
+          branchName=""
+          appVersion=""
+          if [ ${{ github.event_name }} == 'repository_dispatch' ]; then
+            branchName="${{ github.event.client_payload.pull_request.head.ref }}"
+
+            appVersion="canary-${branchName//[^[:alnum:]]/}"
+            if [ -n "${{ github.event.client_payload.slash_command.args.named.app-version }}" ]; then
+              appVersion="canary-${{ github.event.client_payload.slash_command.args.named.app-version }}"
+            fi
+          else
+            branchName="${{ github.ref_name }}"
+          
+            appVersion="canary-${branchName//[^[:alnum:]]/}"
+            if [ -n "${{ github.event.inputs.app-version }}" ]; then
+              appVersion="canary-${{ github.event.inputs.app-version }}"
+            fi
+          fi
+          
+          echo -e "${BL}Info:${NC} Branch Name $branchName"
+          echo "branch-name=$branchName" >> "$GITHUB_OUTPUT"
+          
+          echo -e "${BL}Info:${NC} App Version $appVersion"
+          echo "app-version=$appVersion" >> "$GITHUB_OUTPUT"
+
+      - name: 'Login Docker registry (Quay)'
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USER }} # Use org secrets for this
+          password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
+
+      - name: 'Login backup Docker registry (GCR)'
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: us.gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_CREDENTIALS }} # Use org secrets for this
+
+      - name: Read Config
+        uses: actions-tools/yaml-outputs@v2
+        id: config
+        with:
+          file-path: ci/config.yaml
+
+      - uses: actions/setup-node@v3.7.0
+        with:
+          node-version: ${{ steps.config.outputs.nodeVersion }}
+          cache: npm
+
+      - name: Provision app config
+        id: provision-app-config
+        run: |
+          # Colors
+          BL='\033[0;34m'
+          if [[ -f ".env.template" ]]; then
+            echo -e "${BL}Info:${NC} Using env .env.template"
+
+            cp .env.template .env
+
+            sed -i -e 's|{PROTOCOL}|https|g' .env
+            sed -i -e 's|{NAMESPACE}||g' .env
+            sed -i -e 's|{ENV}|prd|g' .env
+          elif [[ -f "./src/env/env.prd.template" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./src/env/env.prd.template"
+
+            cp ./src/env/env.prd.template ./src/env/env.ts
+
+            sed -i -e 's|APP_ENV|true|g' ./src/env/env.ts
+          elif [[ -f "./env/prod.json" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./env/prod.json"
+
+            cp ./env/prod.json ./env/env.json
+            sed -i -e 's|VERSION|${{ steps.release.outputs.version }}|g' ./env/env.json || true
+          else
+            echo -e "${BL}Info:${NC} No env file found"
+          fi
+
+      - name: 'Docker build & push image'
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: .
+          file: ci/Dockerfile
+          push: true
+          build-args: |
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            NODE_VERSION=${{ steps.config.outputs.nodeVersion }}
+            GCP_SA_CREDENTIALS=${{ secrets.GCP_SA_CREDENTIALS }}
+          labels: |
+            app.version=${{ steps.params.outputs.app-version }}
+            git.branch.name=${{ steps.params.outputs.branch-name }}
+            git.commit.sha=${{ github.sha }}
+            image.type=canary
+          tags: |
+            quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
+            us.gcr.io/am-production-268015/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
+
+      - name: 'Respond with Docker image'
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          body: |
+            Hi @${{ github.event.client_payload.github.payload.comment.user.login }}!
+            I've just built the image `${{ steps.params.outputs.app-version }}` for you.
+            You can get it with the following command:
+            ```bash
+            docker pull quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}
+            ```
+      - name: 'Summarize with Docker image'
+        run: |
+          echo 'Tag `${{ steps.params.outputs.app-version }}` built' >> $GITHUB_STEP_SUMMARY
+          echo 'Get it with:' >> $GITHUB_STEP_SUMMARY
+          echo '```docker pull quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.params.outputs.app-version }}```' >> $GITHUB_STEP_SUMMARY
