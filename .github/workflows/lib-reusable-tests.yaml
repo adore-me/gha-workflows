@@ -104,7 +104,7 @@ jobs:
         uses: adore-me/gha-image-setup@v1.1.5
 
       - name: 'Login quay'
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v3
         with:
           registry: quay.io
           username: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
