@@ -48,7 +48,6 @@ on:
       coverage-report-file-name:
         description: 'Coverage report file name'
         type: string
-        required: true
         default: 'coverage-clover.xml'
       run-suites:
         type: string
