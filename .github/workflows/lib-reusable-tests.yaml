@@ -5,12 +5,10 @@ on:
     inputs:
       reports-dir:
         description: 'Reports base directory'
-        required: true
         type: string
         default: 'build/reports'
       phpunit-report-file-name:
         description: 'PHPUnit report file name'
-        required: true
         type: string
         default: 'phpunit-junit.xml'
       enable-mysql:
