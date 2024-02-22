@@ -39,7 +39,6 @@ on:
       workers-conf-path:
         description: 'Workers configuration file path'
         type: string
-        required: true
         default: 'ci/worker-confs/supervisor_dev_test_workers.conf'
       with-coverage:
         description: 'Run coverage'
