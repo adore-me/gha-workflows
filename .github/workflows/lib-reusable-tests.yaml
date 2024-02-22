@@ -2,6 +2,11 @@ name: 'Reusable CI workflow for lib tests'
 
 on:
   workflow_call:
+    secrets:
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
     inputs:
       reports-dir:
         description: 'Reports base directory'
