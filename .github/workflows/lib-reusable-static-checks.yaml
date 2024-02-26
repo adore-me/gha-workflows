@@ -3,7 +3,7 @@ name: 'Static Checks reusable workflow for libs'
 on:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
+      GH_TOKEN:
         required: true
       QUAY_USER:
         required: true
@@ -100,7 +100,7 @@ jobs:
         uses: adore-me/gha-php-static-checks@v2.1.17
         with:
           app-dir: ${{ inputs.app-dir }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN }}
           phpmd-app-dir: ${{ inputs.phpmd-app-dir }}
           run-phpcpd: ${{ inputs.run-phpcpd }}
           run-phpcs: ${{ inputs.run-phpcs }}
