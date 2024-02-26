@@ -113,6 +113,7 @@ jobs:
           file: ci/Dockerfile
           push: true
           build-args: |
+            APP_VERSION=${{ steps.release.outputs.version }}
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             NODE_VERSION=${{ steps.config.outputs.nodeVersion }}
             GCP_SA_CREDENTIALS=${{ secrets.GCP_SA_CREDENTIALS }}
