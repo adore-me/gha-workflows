@@ -8,6 +8,10 @@ on:
       CYPRESS_CURRENTS_RECORD_KEY:
         required: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   read-config:
     name: Read Config
