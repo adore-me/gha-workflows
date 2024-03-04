@@ -57,7 +57,7 @@ jobs:
     steps:
       - name: 'Checkout'
         id: checkout
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v4.1.1
 
       - name: 'Create release'
         id: release
@@ -71,7 +71,7 @@ jobs:
 
       - name: 'Login Docker registry (Quay)'
         id: login-quay
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v3.0.0
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
@@ -79,7 +79,7 @@ jobs:
 
       - name: 'Login backup Docker registry (GCR)'
         id: login-backup-gcr
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v3.0.0
         with:
           registry: us.gcr.io
           username: _json_key
@@ -87,13 +87,13 @@ jobs:
 
       - name: 'Set PHP image'
         id: set-php-image
-        uses: adore-me/gha-image-setup@v1.1.4
+        uses: adore-me/gha-image-setup@v1.1.6
         with:
           name: ${{ inputs.php-image-name }}
 
       - name: 'Composer Install'
         id: composer-install
-        uses: adore-me/gha-composer@v2.1.2
+        uses: adore-me/gha-composer@v2.1.3
         with:
           composer-self-update: ${{ inputs.composer-self-update }}
           composer-self-update-version: ${{ inputs.composer-self-update-version }}
@@ -116,7 +116,7 @@ jobs:
 
       - name: 'Docker build & push image'
         id: docker-build-push
-        uses: docker/build-push-action@v3.3.1
+        uses: docker/build-push-action@v5.1.0
         with:
           context: .
           file: ci/Dockerfile
@@ -163,7 +163,7 @@ jobs:
             return pr
 
       - name: 'Create jira tickets and link items, send deployment notification'
-        uses: adore-me/github-action-deploysbot@v1.0.0
+        uses: adore-me/github-action-deploysbot@v1.0.2
         if: inputs.create-jira-tickets && steps.pr-id.outputs.result > 0
         with:
           JIRA_USER: ${{ secrets.JIRA_USER }}
