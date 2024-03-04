@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v3.5.2
+        uses: actions/checkout@v4.1.1
         with:
           ref: ${{ github.event.client_payload.pull_request.head.ref && github.event.client_payload.pull_request.head.ref || github.ref_name }}
 
@@ -64,14 +64,14 @@ jobs:
           echo "app-version=$appVersion" >> "$GITHUB_OUTPUT"
 
       - name: 'Login Docker registry (Quay)'
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v3.0.0
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USER }} # Use org secrets for this
           password: ${{ secrets.QUAY_PASSWORD }} # Use org secrets for this
 
       - name: 'Login backup Docker registry (GCR)'
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v3.0.0
         with:
           registry: us.gcr.io
           username: _json_key
@@ -83,7 +83,7 @@ jobs:
         with:
           file-path: ci/config.yaml
 
-      - uses: actions/setup-node@v3.7.0
+      - uses: actions/setup-node@v4.0.2
         with:
           node-version: ${{ steps.config.outputs.nodeVersion }}
           cache: npm
@@ -117,7 +117,7 @@ jobs:
           fi
 
       - name: 'Docker build & push image'
-        uses: docker/build-push-action@v4.1.1
+        uses: docker/build-push-action@v5.1.0
         with:
           context: .
           file: ci/Dockerfile
