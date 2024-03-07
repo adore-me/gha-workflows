@@ -120,12 +120,6 @@ jobs:
           run-install: true
           gh-oauth-token: ${{ steps.gha-token.outputs.token }}
 
-      - name: Build cache (cache built code)
-        uses: actions/cache@v3.3.1
-        with:
-          key: ${{ env.APP_BUILD_CACHE_KEY }}
-          path: ${{ github.workspace }}
-
       - name: 'Run PHPUnit'
         uses: adore-me/gha-phpunit@test
         with:
