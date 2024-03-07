@@ -2,15 +2,14 @@ name: 'Static Checks reusable workflow for libs'
 
 on:
   workflow_call:
-    variables:
-      APP_ID:
-        required: true
     secrets:
       GH_KEY:
         required: true
       QUAY_USER:
         required: true
       QUAY_PASSWORD:
+        required: true
+      APP_ID:
         required: true
     inputs:
       php-image:
