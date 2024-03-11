@@ -88,13 +88,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-#      - name: 'Create token'
-#        id: gha-token
-#        uses: actions/create-github-app-token@v1.9.0
-#        with:
-#          app-id: ${{ vars.APP_ID }}
-#          private-key: ${{ secrets.GH_KEY }}
-#          owner: ${{ github.repository_owner }}
+      - name: 'Create token'
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.GH_KEY }}
+          owner: ${{ github.repository_owner }}
 
       - name: 'Checkout'
         uses: actions/checkout@v3.5.2
@@ -117,8 +117,7 @@ jobs:
         with:
           check-lock: false
           run-install: true
-          gh-oauth-token: ${{ secrets.GH_KEY }}
-#          gh-oauth-token: ${{ steps.gha-token.outputs.token }}
+          gh-oauth-token: ${{ steps.gha-token.outputs.token }}
 
       - name: 'Run PHPUnit'
         uses: adore-me/gha-phpunit@test
