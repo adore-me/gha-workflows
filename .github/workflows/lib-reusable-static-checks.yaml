@@ -114,7 +114,6 @@ jobs:
         uses: adore-me/gha-php-static-checks@v2.1.17
         with:
           app-dir: ${{ inputs.app-dir }}
-#          github-token: ${{ inputs.github-token }}
           github-token: ${{ steps.gha-token.outputs.token }}
           phpmd-app-dir: ${{ inputs.phpmd-app-dir }}
           run-phpcpd: ${{ inputs.run-phpcpd }}
