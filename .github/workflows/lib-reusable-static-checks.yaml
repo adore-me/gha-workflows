@@ -105,6 +105,8 @@ jobs:
         with:
           check-lock: false
           run-install: true
+          composer-self-update: true
+          composer-self-update-version: 2.7.1
           gh-oauth-token: ${{ steps.gha-token.outputs.token }}
 
       - name: 'Run Static Checks'
