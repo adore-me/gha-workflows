@@ -65,7 +65,7 @@ on:
 permissions: write-all
 
 jobs:
-  test:
+  static-checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
