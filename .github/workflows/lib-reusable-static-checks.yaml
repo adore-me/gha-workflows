@@ -108,9 +108,11 @@ jobs:
           app-dir: ${{ inputs.app-dir }}
           github-token: ${{ steps.gha-token.outputs.token }}
           phpmd-app-dir: ${{ inputs.phpmd-app-dir }}
+          phpcs-standard: ${{ inputs.phpcs-standard }}
           run-phpcpd: ${{ inputs.run-phpcpd }}
           run-phpcs: ${{ inputs.run-phpcs }}
           run-phpmd: ${{ inputs.run-phpmd }}
           run-phpstan: ${{ inputs.run-phpstan }}
           run-rector: ${{ inputs.run-rector }}
           run-laravel-pint: ${{ inputs.run-laravel-pint }}
+
