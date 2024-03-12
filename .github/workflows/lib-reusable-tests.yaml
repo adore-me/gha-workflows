@@ -123,6 +123,7 @@ jobs:
         with:
           check-lock: false
           run-install: true
+          composer-self-update: true
           gh-oauth-token: ${{ steps.gha-token.outputs.token }}
 
       - name: 'Run PHPUnit'
