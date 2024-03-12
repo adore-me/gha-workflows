@@ -126,8 +126,8 @@ jobs:
           check-lock: false
           run-install: true
           composer-self-update: true
-          gh-oauth-token: ${{ secrets.gh-old-oauth-token }}
-#          gh-oauth-token: ${{ steps.gha-token.outputs.token }}
+#          gh-oauth-token: ${{ secrets.gh-old-oauth-token }}
+          gh-oauth-token: ${{ steps.gha-token.outputs.token }}
 
       - name: 'Run PHPUnit'
         uses: adore-me/gha-phpunit@test
