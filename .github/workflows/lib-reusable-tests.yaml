@@ -127,7 +127,7 @@ jobs:
           gh-oauth-token: ${{ steps.gha-token.outputs.token }}
 
       - name: 'Run PHPUnit'
-        uses: adore-me/gha-phpunit@test
+        uses: adore-me/gha-phpunit@v3.3.5
         with:
           enable-mysql: ${{ inputs.enable-mysql }}
           enable-redis: ${{ inputs.enable-redis }}
