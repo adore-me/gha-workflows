@@ -111,3 +111,4 @@ jobs:
           run-phpstan: ${{ inputs.run-phpstan }}
           run-rector: ${{ inputs.run-rector }}
           run-laravel-pint: ${{ inputs.run-laravel-pint }}
+          reports-dir: ${{ inputs.reports-dir }}

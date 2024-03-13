@@ -138,3 +138,9 @@ jobs:
           verbose: ${{ inputs.verbose }}
           with-coverage: ${{ inputs.with-coverage }}
           testing-env-file: ${{ inputs.testing-env-file }}
+          reports-dir: ${{ inputs.reports-dir }}
+          phpunit-report-file-name: ${{ inputs.phpunit-report-file-name }}
+          workers-conf-path: ${{ inputs.workers-conf-path }}
+          coverage-report-file-name: ${{ inputs.coverage-report-file-name }}
+          min-line-coverage: ${{ inputs.min-line-coverage }}
+          min-method-coverage: ${{ inputs.min-method-coverage }}
