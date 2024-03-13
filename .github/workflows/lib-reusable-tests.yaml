@@ -88,8 +88,8 @@ on:
         default: 'true'
 
 permissions:
-  actions: read
-  contents: read
+  actions: write
+  contents: write
   checks: write
   pull-requests: write
 
