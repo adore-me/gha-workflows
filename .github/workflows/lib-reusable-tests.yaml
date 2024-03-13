@@ -90,7 +90,7 @@ on:
 permissions:
   actions: read
   contents: read
-  checks: read
+  checks: write
 
 jobs:
   test:
