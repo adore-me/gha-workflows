@@ -61,8 +61,8 @@ on:
         type: string
 
 permissions:
-    actions: read
-    contents: read
+  actions: write
+  contents: write
 
 jobs:
   static-checks:
