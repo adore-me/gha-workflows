@@ -91,6 +91,7 @@ permissions:
   actions: read
   contents: read
   checks: write
+  pull-requests: read
 
 jobs:
   test:
