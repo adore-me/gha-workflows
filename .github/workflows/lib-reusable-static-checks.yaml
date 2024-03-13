@@ -91,7 +91,7 @@ jobs:
         uses: adore-me/gha-image-setup@v1.1.5
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@3.0.4
+        uses: adore-me/gha-composer@v3.0.4
         with:
           check-lock: false
           run-install: true
