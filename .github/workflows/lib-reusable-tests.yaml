@@ -88,8 +88,9 @@ on:
         default: 'true'
 
 permissions:
-  actions: write
-  contents: write
+  actions: read
+  contents: read
+  checks: read
 
 jobs:
   test:
