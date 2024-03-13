@@ -87,7 +87,9 @@ on:
         required: false
         default: 'true'
 
-permissions: write-all
+permissions:
+  actions: read
+  contents: read
 
 jobs:
   test:
