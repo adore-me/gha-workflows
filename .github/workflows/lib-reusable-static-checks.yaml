@@ -11,8 +11,6 @@ on:
         required: true
       APP_ID:
         required: true
-      gh-old-oauth-token:
-        required: false
     inputs:
       php-image:
         description: 'PHP image to use'
@@ -99,7 +97,6 @@ jobs:
           check-lock: false
           run-install: true
           composer-self-update: true
-#          gh-oauth-token: ${{ secrets.gh-old-oauth-token }}
           gh-oauth-token: ${{ steps.gha-token.outputs.token }}
 
       - name: 'Run Static Checks'
