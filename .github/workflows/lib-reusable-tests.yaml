@@ -118,8 +118,7 @@ jobs:
         uses: adore-me/gha-image-setup@v1.1.5
 
       - name: 'Composer Install'
-        uses: adore-me/gha-composer@composer-lock
-        #TODO: Update this to use the actual version of the action
+        uses: adore-me/gha-composer@3.0.4
         with:
           check-lock: false
           run-install: true
