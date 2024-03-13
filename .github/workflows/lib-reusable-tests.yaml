@@ -87,11 +87,13 @@ on:
         required: false
         default: 'true'
 
-permissions:
-  actions: write
-  contents: write
-  checks: write
-  pull-requests: write
+#permissions:
+#  actions: write
+#  contents: write
+#  checks: write
+#  pull-requests: write
+
+permissions: write-all
 
 jobs:
   test:
