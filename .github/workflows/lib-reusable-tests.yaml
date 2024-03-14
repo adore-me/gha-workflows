@@ -92,6 +92,7 @@ permissions:
   contents: read
   checks: read
   pull-requests: write
+  discussions: write
 
 #permissions: write-all
 
