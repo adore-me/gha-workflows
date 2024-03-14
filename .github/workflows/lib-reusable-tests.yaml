@@ -90,8 +90,8 @@ on:
 permissions:
   actions: read
   contents: read
-  checks: write
-  pull-requests: read
+  checks: read
+  pull-requests: write
 
 #permissions: write-all
 
