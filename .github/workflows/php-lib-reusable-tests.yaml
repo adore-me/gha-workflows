@@ -94,8 +94,6 @@ permissions:
   pull-requests: write
   discussions: write
 
-#permissions: write-all
-
 jobs:
   tests:
     name: Tests
