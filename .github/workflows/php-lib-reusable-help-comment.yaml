@@ -1,16 +1,11 @@
 name: Help Comment
 permissions:
   pull-requests: write
-"on":
-  pull_request:
-    types:
-      - opened
-      - ready_for_review
-      - synchronize
-      - reopened
-    branches:
-      - master
-      - main
+on:
+  workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
 jobs:
   run:
     runs-on: ubuntu-latest
