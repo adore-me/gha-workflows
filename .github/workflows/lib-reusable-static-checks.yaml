@@ -67,6 +67,7 @@ permissions:
 
 jobs:
   static-checks:
+    name: Static Checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
