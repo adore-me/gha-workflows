@@ -1,0 +1,152 @@
+name: 'Unit tests reusable workflow for libs'
+
+on:
+  workflow_call:
+    secrets:
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      GH_KEY:
+        required: true
+      APP_ID:
+        required: true
+    inputs:
+      reports-dir:
+        description: 'Reports base directory'
+        type: string
+        default: 'build/reports'
+      phpunit-report-file-name:
+        description: 'PHPUnit report file name'
+        type: string
+        default: 'phpunit-junit.xml'
+      enable-mysql:
+        description: 'Enable MySQL'
+        type: string
+        required: true
+        default: 'false'
+      run-migrations:
+        description: 'Run migrations'
+        type: string
+        required: true
+        default: 'true'
+      run-seeds:
+        description: 'Run seeds'
+        type: string
+        required: true
+        default: 'true'
+      enable-redis:
+        description: 'Enable Redis'
+        type: string
+        required: true
+        default: 'false'
+      enable-workers:
+        description: 'Enable Workers'
+        type: string
+        required: true
+        default: 'false'
+      workers-conf-path:
+        description: 'Workers configuration file path'
+        type: string
+        default: 'ci/worker-confs/supervisor_dev_test_workers.conf'
+      with-coverage:
+        description: 'Run coverage'
+        type: string
+        required: true
+        default: 'true'
+      coverage-report-file-name:
+        description: 'Coverage report file name'
+        type: string
+        default: 'coverage-clover.xml'
+      run-suites:
+        type: string
+        description: 'Run specific suites. Pass suites as a comma separated list, no spaces (e.g. "UnitTests,IntegrationTests")'
+        required: false
+        default: ''
+      verbose:
+        type: string
+        description: 'Run PHPUnit in verbose mode'
+        required: true
+        default: 'false'
+      min-line-coverage:
+        description: 'Minimum percentage acceptable for line coverage'
+        type: number
+        default: 0
+      min-method-coverage:
+        description: 'Minimum percentage acceptable for method coverage'
+        type: number
+        default: 0
+      enable-rabbitmq:
+        description: 'Enable RabbitMQ'
+        type: string
+        required: false
+        default: 'false'
+      testing-env-file:
+        description: '.env.testing file is used'
+        type: string
+        required: false
+        default: 'true'
+
+permissions:
+  actions: read
+  contents: read
+  checks: write
+  pull-requests: write
+  discussions: write
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 'Create token'
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.GH_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: 'Checkout'
+        uses: actions/checkout@v3.5.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: 'Login quay'
+        uses: docker/login-action@v2.1.0
+        with:
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: quay.io
+
+      - name: 'Set PHP image'
+        uses: adore-me/gha-image-setup@v1.1.5
+
+      - name: 'Composer Install'
+        uses: adore-me/gha-composer@v3.0.4
+        with:
+          check-lock: false
+          run-install: true
+          composer-self-update: true
+          gh-oauth-token: ${{ steps.gha-token.outputs.token }}
+
+      - name: 'Run PHPUnit'
+        uses: adore-me/gha-phpunit@v3.3.5
+        with:
+          enable-mysql: ${{ inputs.enable-mysql }}
+          enable-redis: ${{ inputs.enable-redis }}
+          enable-workers: ${{ inputs.enable-workers }}
+          enable-rabbitmq: ${{ inputs.enable-rabbitmq }}
+          run-migrations: ${{ inputs.run-migrations }}
+          run-seeds: ${{ inputs.run-seeds }}
+          run-suites: ${{ inputs.run-suites }}
+          verbose: ${{ inputs.verbose }}
+          with-coverage: ${{ inputs.with-coverage }}
+          testing-env-file: ${{ inputs.testing-env-file }}
+          reports-dir: ${{ inputs.reports-dir }}
+          phpunit-report-file-name: ${{ inputs.phpunit-report-file-name }}
+          workers-conf-path: ${{ inputs.workers-conf-path }}
+          coverage-report-file-name: ${{ inputs.coverage-report-file-name }}
+          min-line-coverage: ${{ inputs.min-line-coverage }}
+          min-method-coverage: ${{ inputs.min-method-coverage }}

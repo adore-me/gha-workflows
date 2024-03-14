@@ -1,0 +1,18 @@
+name: Help Comment
+permissions:
+  pull-requests: write
+on:
+  workflow_call:
+    secrets:
+      GIT_TOKEN:
+        required: true
+jobs:
+  comment:
+    name: Lib Help Comment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: wow-actions/auto-comment@v1.1.2
+        name: Help Comment
+        with:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          pullRequestOpened: ":wave: @{{ author }}\n\n**Versioning**\nBy default, the versioning is configured to bump the `patch` version of the script.  \nℹ If you need to bump the `major` or `minor` version you should label this `PR` with either one of:\n- `release:major`\n- `release:minor`"
