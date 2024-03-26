@@ -24,7 +24,7 @@ on:
 
 concurrency:
   group: ${{ inputs.namespace }}
-run-name: ${{ github.event_name == 'workflow_dispatch' && tojson(inputs) }}
+run-name: ${{ tojson(inputs) }}
 jobs:
   deploy-qa-envs:
     timeout-minutes: 10
