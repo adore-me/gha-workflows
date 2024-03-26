@@ -1,0 +1,209 @@
+name: 'Deploy app to QA environments'
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        description: 'namespace:'
+        type: string
+        required: true
+        default: ''
+      identifier:
+        description: 'mass-deploy identifier: '
+        type: string
+        required: false
+    secrets:
+      GH_OAUTH_TOKEN:
+        required: true
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      GH_TOKEN:
+        required: true
+
+concurrency:
+  group: ${{ inputs.namespace }}
+run-name: ${{ github.event_name == 'workflow_dispatch' && tojson(inputs) }}
+jobs:
+  deploy-qa-envs:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout kube-dev'
+        id: checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: adore-me/kube-dev
+          token: ${{ secrets.GH_OAUTH_TOKEN }}
+          ref: master
+
+      - if: github.ref_name == github.event.repository.default_branch
+        name: 'Checkout Kube-prod as submodule'
+        id: checkout-kube-prod
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: adore-me/kube-prod
+          token: ${{ secrets.GH_OAUTH_TOKEN }}
+          submodules: true
+          path: kube-prod
+
+      - if: github.ref_name == github.event.repository.default_branch
+        name: 'Set TAG from prod'
+        id: set-tag-prod
+        run: |
+          if [ ! -d "kube-prod/releases/prod/${{ github.event.repository.name }}" ]; then
+            echo "Kube-prod ${{ github.event.repository.name }} folder does not exist, using kube-dev tag"
+            echo "dev-tag=true" >> "$GITHUB_OUTPUT"
+            echo "Tag not found! Removing kube-prod"
+            rm -rf kube-prod
+          else
+            cd kube-prod/releases/prod/${{ github.event.repository.name }}
+            tag="$(yq ".spec.values.app.image.tag" helm-release.yaml)"
+            if [ ${#tag} > 1} ] || [ $tag != "null" ]; then
+              echo "Tag is: $tag"
+              echo "tag=$tag" >> "$GITHUB_OUTPUT"
+              cd ../../../../
+              echo "Tag found! Removing kube-prod"
+              rm -rf kube-prod
+            else
+              echo "Tag is empty, using kube-dev tag"
+              echo "dev-tag=true" >> "$GITHUB_OUTPUT"
+              echo "Tag not found! Removing kube-prod"
+              rm -rf kube-prod
+            fi
+          fi
+
+      - if: (github.ref_name != github.event.repository.default_branch) || (steps.set-tag-prod.outputs.dev-tag == 'true')
+        name: 'Login quay'
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: quay.io
+
+      - name: 'Checkout ${{ github.event.repository.name }} as submodule'
+        id: checkout-repo
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: adore-me/${{ github.event.repository.name }}
+          token: ${{ secrets.GH_OAUTH_TOKEN }}
+          submodules: true
+          path: ${{ github.event.repository.name }}
+
+      - name: 'Load config file'
+        uses: actions-tools/yaml-outputs@v2
+        id: config
+        with:
+          file-path: ${{ github.event.repository.name }}/ci/config.yaml
+
+      - if: (github.ref_name != github.event.repository.default_branch) || (steps.set-tag-prod.outputs.dev-tag == 'true')
+        name: 'Set TAG'
+        id: set-tag
+        run: |
+          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ github.sha }}"
+          echo "Tag is: $tag" 
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - if : (github.ref_name != github.event.repository.default_branch) || (steps.set-tag-prod.outputs.dev-tag == 'true')
+        name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v3
+
+      - if: (github.ref_name != github.event.repository.default_branch) || (steps.set-tag-prod.outputs.dev-tag == 'true')
+        name: 'Docker build & push image'
+        id: docker-build-push
+        uses: docker/build-push-action@v5.0.0
+        with:
+          context: ./${{ github.event.repository.name }}
+          file: ${{ github.event.repository.name }}/ci/Dockerfile
+          push: true
+          tags: quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.set-tag.outputs.tag }}
+          build-args: |
+            IMAGE_TAG=quay.io/adoreme/nginx-fpm-alpine:${{ steps.config.outputs.image-tag }}
+          #            RUN_LARAVEL_ROUTE_CACHE=${{ steps.config.outputs.run-laravel-route-cache }}
+          secrets: |
+            COMPOSER_TOKEN=${{ secrets.GH_TOKEN }}
+          cache-from: type=gha
+          cache-to: type=gha
+
+      - name: 'Copy helm-release.yaml to teams folder'
+        id: copy-helm-release
+        run: |
+          team_namespace=${{ inputs.namespace }}
+          path="cluster/teams/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}"
+          basePath="resources/base/apps/${{ github.event.repository.name }}"
+          mkdir -p $path
+          echo "Created folder $path"
+          cp $basePath/helm-release.yaml $path/helm-release.yaml
+          echo "Copied helm-release.yaml"
+          cp ${{ github.event.repository.name }}/ci/env.yml $path/env.yml
+          echo "Copied env.yml"
+          awk '{print "    " $0}' $path/env.yml > $path/temp_env.yml && mv $path/temp_env.yml $path/env.yml 
+          cat $path/env.yml >> $path/helm-release.yaml
+          echo "Copied env.yml to helm-release.yaml"
+          rm  $path/env.yml
+          echo "Removed env.yml"
+          if [ -d $basePath/sealed-secrets ]; then
+            cp -r $basePath/sealed-secrets $path
+            echo "Copied sealed-secrets folder"
+          fi
+
+      - name: 'Remove ${{ github.event.repository.name }}'
+        run: |
+          rm -rf ${{ github.event.repository.name }}
+          echo "Removed ${{ github.event.repository.name }}"
+
+      - name: 'Replace values in helm-release.yaml'
+        id: replace-values
+        run: |
+          team_namespace=${{ inputs.namespace }}
+          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.stg.adoreme.com"
+          if [ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ] ; then
+            tag='${{ steps.set-tag-prod.outputs.tag }} # {"\$imagepolicy": "flux-system:${{ github.event.repository.name }}:tag"}'
+          else
+            tag="${{ steps.set-tag.outputs.tag }}"
+          fi
+          tag=$tag
+          nginxTag="${{ steps.config.outputs.image-tag }}"
+          filePath="cluster/teams/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
+          sed -i "s/namespace: NAMESPACE\b/namespace: $team_namespace/1" "$filePath"
+          echo "Replaced namespace with $team_namespace in helm-release.yaml"
+          sed -i "s/targetNamespace: TARGET_NAMESPACE\b/targetNamespace: $team_namespace/1" "$filePath"
+          echo "Replaced targetNamespace with $team_namespace in helm-release.yaml"
+          sed -i "s/domain: DOMAIN\b/domain: $domain/1" "$filePath"
+          echo "Replaced domain with $domain in helm-release.yaml"
+          sed -i "s/tag: TAG\b/tag: $tag/1" "$filePath"
+          echo "Replaced tag with $tag in helm-release.yaml"
+          sed -i "s/\${POD_NAMESPACE}/$team_namespace/1" "$filePath"
+          echo "Replaced \${POD_NAMESPACE} variable with $team_namespace in $filePath"
+          sed -i "s/POD_NAMESPACE\b/ $team_namespace/1" "$filePath"
+          echo "Replaced POD_NAMESPACE with $team_namespace in $filePath"
+          sed -i "/nginx:/,/tag:/ s/tag: .*/tag: $nginxTag/" "$filePath"
+          echo "Replaced nginx tag with $nginxTag in $filePath"
+          secretPath="cluster/teams/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/sealed-secrets"
+          find "$secretPath" -type f -name "*.yaml" -print0 | while IFS= read -r -d $'\0' file; do
+            sed -i "s/namespace: TARGET_NAMESPACE\b/namespace: $team_namespace/1" "$file"
+            echo "Replaced namespace with $team_namespace in $file"
+          done
+
+      - name: 'Retry Step'
+        uses: nick-fields/retry@v2.9.0
+        with:
+          command: |
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            git add .
+            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
+            git push origin master
+          max_attempts: 12
+          timeout_seconds: 5
+          on_retry_command: |
+            echo "Retrying..."
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            git stash || true
+            git pull origin master
+            git stash pop || true
+            git add .
+            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
+            git push origin master
