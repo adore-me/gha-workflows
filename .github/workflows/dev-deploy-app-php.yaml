@@ -202,7 +202,7 @@ jobs:
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git config --global user.name "github-actions[bot]"
             git stash || true
-            git pull origin master
+            git pull --no-ff --no-edit origin master
             git stash pop || true
             git add .
             git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
