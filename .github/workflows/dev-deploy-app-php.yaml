@@ -26,7 +26,7 @@ concurrency:
   group: ${{ inputs.namespace }}
 run-name: ${{ tojson(inputs) }}
 jobs:
-  deploy-qa-envs:
+  reusable:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
