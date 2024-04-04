@@ -60,7 +60,13 @@ jobs:
         uses: actions/checkout@v4.1.1
 
       - name: 'Remove tests folder'
-        run: rm -rf tests
+        run:
+          if [ -d tests ]; then 
+            rm -rf tests; 
+            echo "Tests folder removed";
+          else
+            echo "No tests folder to remove";
+          fi
 
       - name: 'Create release'
         id: release
