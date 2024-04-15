@@ -3,6 +3,10 @@ name: 'Reusable CI workflow for front-end apps'
 on:
   workflow_call:
     secrets:
+      AM_GHA_APP_ID:
+        required: true
+      AM_GHA_APP_PRIVATE_KEY:
+        required: true
       NPM_TOKEN:
         required: true
       CYPRESS_CURRENTS_RECORD_KEY:
