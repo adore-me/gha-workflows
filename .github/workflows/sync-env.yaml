@@ -9,7 +9,9 @@ on:
         required: false
         type: boolean
     secrets:
-      GH_TOKEN:
+      GH_KEY:
+        required: true
+      APP_ID:
         required: true
 
 jobs:
@@ -20,10 +22,17 @@ jobs:
     steps:
       - name: Checkout current repository
         uses: actions/checkout@v3
+      - name: Create token
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.GH_KEY }}
+          owner: ${{ github.repository_owner }}
       - name: Copy and push the env file to kube-dev
         uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
         env:
-          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
+          API_TOKEN_GITHUB: ${{ steps.gha-token.outputs.token }}
         with:
           source_file: "ci/env.yml"
           destination_repo: 'adore-me/kube-dev'
