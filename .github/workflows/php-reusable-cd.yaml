@@ -33,7 +33,9 @@ on:
         type: string
         default: ''
     secrets:
-      GH_OAUTH_TOKEN:
+      APP_ID:
+        required: true
+      GH_KEY:
         required: true
       QUAY_USER:
         required: true
@@ -59,6 +61,14 @@ jobs:
         id: checkout
         uses: actions/checkout@v4.1.1
 
+      - name: 'Create token'
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.GH_KEY }}
+          owner: ${{ github.repository_owner }}
+
       - name: 'Remove tests folder'
         run:
           if [ -d tests ]; then 
@@ -72,7 +82,7 @@ jobs:
         id: release
         uses: rymndhng/release-on-push-action@v0.28.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.gha-token.outputs.token }}
         with:
           use_github_release_notes: true
           bump_version_scheme: patch
@@ -171,6 +181,14 @@ jobs:
             console.log("this is pr number: " + pr)
             return pr
 
+      - name: 'Create token'
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.GH_KEY }}
+          owner: ${{ github.repository_owner }}
+
       - name: 'Create jira tickets and link items, send deployment notification'
         uses: adore-me/github-action-deploysbot@v1.0.2
         if: inputs.create-jira-tickets && steps.pr-id.outputs.result > 0
@@ -178,7 +196,7 @@ jobs:
           JIRA_USER: ${{ secrets.JIRA_USER }}
           JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
           JIRA_URI: ${{ secrets.JIRA_URI }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.gha-token.outputs.token }}
           GH_PR_NUMBER: ${{ steps.pr-id.outputs.result }}
           GH_TAG: ${{ needs.release.outputs.tag }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
