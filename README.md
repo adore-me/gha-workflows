@@ -60,6 +60,10 @@ This workflow should be used to promote an `rc` image to a `prod` image.
   - `default`: **true**
   - `required`: **false**
 #### Secrets
+- `APP_ID`: GitHub Actions App ID
+  - `required`: **true**
+- `GH_KEY`: GitHub Actions App Private Key
+  - `required`: **true**
 - `GH_OAUTH_TOKEN`: GitHub Token
   - `required`: **true**
 - `QUAY_USER`: The username to use when authenticating with the Quay registry.
