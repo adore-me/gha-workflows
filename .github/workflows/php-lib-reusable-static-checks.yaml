@@ -55,10 +55,6 @@ on:
         description: 'Run Laravel Pint'
         default: 'false'
         type: string
-      github-token:
-        description: 'Github token'
-        default: ''
-        type: string
 
 permissions:
   actions: read
