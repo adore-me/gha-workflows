@@ -33,6 +33,8 @@ on:
         type: string
         default: ''
     secrets:
+      GH_OAUTH_TOKEN:
+        required: true
       QUAY_USER:
         required: true
       QUAY_PASSWORD:
