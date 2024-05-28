@@ -1,0 +1,203 @@
+name: 'Deploy app to QA environments'
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        description: 'namespace:'
+        type: string
+        required: true
+        default: ''
+      identifier:
+        description: 'mass-deploy identifier: '
+        type: string
+        required: false
+    secrets:
+      GH_KEY:
+        required: true
+      APP_ID:
+        required: true
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      NPM_TOKEN:
+        required: true
+
+concurrency:
+  group: ${{ inputs.namespace }}
+run-name: ${{ github.event_name == 'workflow_dispatch' && tojson(inputs) }}
+jobs:
+  reusable:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Create token'
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.AM_GHA_APP_ID }}
+          private-key: ${{ secrets.AM_GHA_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: 'Checkout kube-dev'
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: adore-me/kube-dev
+          token: ${{ steps.gha-token.outputs.token }}
+          ref: master
+
+      - name: 'Checkout ${{ github.event.repository.name }}'
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: adore-me/${{ github.event.repository.name }}
+          token: ${{ steps.gha-token.outputs.token }}
+          submodules: true
+          path: ${{ github.event.repository.name }}
+          ref: ${{ github.ref }}
+
+      - name: 'Set env file'
+        run: |
+          # Colors
+          BL='\033[0;34m'
+
+          #Set current date as env variable
+          time=$(date +'%Y-%m-%d-%H:%M:%S')
+
+          #Check type of env file
+          if [[ -f "${{ github.event.repository.name }}/.env.template" ]]; then
+            echo -e "${BL}Info:${NC} Using env .env.template"
+
+            cp ${{ github.event.repository.name }}/.env.template ${{ github.event.repository.name }}/.env
+            file=${{ github.event.repository.name }}/.env
+
+            sed -i -e 's|{NAMESPACE}|${{ inputs.namespace }}|g' $file
+            echo "Replaced NAMESPACE with ${{ inputs.namespace }}"
+            sed -i -e 's|{PROTOCOL}|http|g' $file
+            echo "Replaced PROTOCOL with http"
+            sed -i -e 's|{ENV}|stg|g' $file
+            echo "Replaced ENV with stg"
+          elif [[ -f "${{ github.event.repository.name }}/src/env/env.dev.template" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./src/env/env.dev.template"
+
+            cp ${{ github.event.repository.name }}/src/env/env.dev.template ${{ github.event.repository.name }}/src/env/env.ts
+            file=${{ github.event.repository.name }}/src/env/env.ts
+
+            sed -i -e 's|APP_ENV|false|g' $file
+            sed -i -e 's|NAMESPACE|${{ inputs.namespace }}|g' $file
+            echo "Replaced NAMESPACE with ${{ inputs.namespace }}"
+          elif [[ -f "${{ github.event.repository.name }}/env/staging.json" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./env/staging.json"
+
+            cp -R ${{ github.event.repository.name }}/env/staging.json ${{ github.event.repository.name }}/env/env.json
+            file=${{ github.event.repository.name }}/env/env.json
+
+            sed -i -e 's|NAMESPACE|${{ inputs.namespace }}|g' $file
+            echo "Replaced NAMESPACE with ${{ inputs.namespace }}"
+          elif [[ -f "${{ github.event.repository.name }}/env/staging.env.json" ]]; then
+            echo -e "${BL}Info:${NC} Using env ./env/staging.env.json"
+
+            cp -R ${{ github.event.repository.name }}/env/staging.env.json ${{ github.event.repository.name }}/env/env.json
+            version=${{ github.ref_name }}-$time
+            gwmain_api_domain=gw-main-${{ inputs.namespace }}.stg.adoreme.com
+            gwservices_api_domain=gw-services-${{ inputs.namespace }}.stg.adoreme.com
+            file="${{ github.event.repository.name }}/env/env.json"
+            sed -i "s/VERSION\b/$version/1" "$file"
+            echo "Replaced version with $version"
+            sed -i "s/GWMAIN_API_DOMAIN\b/$gwmain_api_domain/" "$file"
+            echo "Replaced GWMAIN_API_DOMAIN with $gwmain_api_domain"
+            sed -i "s/GWSERVICES_API_DOMAIN\b/$gwservices_api_domain/" "$file"
+            echo "Replaced GWSERVICES_API_DOMAIN with $gwservices_api_domain"
+          else
+            echo -e "${BL}Info:${NC} No env file found"
+          fi
+
+      - name: 'Login quay'
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.GHA_QUAY_ROBOT_USERNAME }}
+          password: ${{ secrets.GHA_QUAY_ROBOT_PASSWORD }}
+          registry: quay.io
+
+      - name: 'Load config file'
+        uses: actions-tools/yaml-outputs@v2
+        id: config
+        with:
+          file-path: ${{ github.event.repository.name }}/ci/config.yaml
+
+      - name: 'Set TAG'
+        id: set-tag
+        run: |
+          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ github.sha }}"
+          echo tag=$tag >> $GITHUB_ENV
+
+      - name: 'Docker build & push image'
+        id: docker-build-push
+        uses: docker/build-push-action@v5.0.0
+        with:
+          context: ./${{ github.event.repository.name }}
+          file: ${{ github.event.repository.name }}/ci/Dockerfile
+          push: true
+          tags: quay.io/adoreme/${{ github.event.repository.name }}:${{ env.tag }}
+          build-args: |
+            NPM_TOKEN=${{ secrets.NPM_TOKEN }}
+            NODE_VERSION=${{ steps.config.outputs.nodeVersion }}
+          labels: |
+            "type=manual-stack"
+            "git.branch.name=${{ github.ref_name }}"
+            "quay.expires-after=4w"
+            "identifier.build.number=${{ inputs.identifier }}"
+          no-cache: true
+
+      - name: 'Remove ${{ github.event.repository.name }} repo'
+        run: |
+          rm -rf ${{ github.event.repository.name }}
+
+      - name: 'Copy helm-release.yaml to teams folder'
+        id: copy-helm-release
+        run: |
+          team_namespace=${{ inputs.namespace }}
+          path="cluster/teams/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}"
+          basePath="resources/base/apps/${{ github.event.repository.name }}"
+          mkdir -p $path
+          echo "Created folder $path"
+          cp $basePath/helm-release.yaml $path/helm-release.yaml
+          echo "Copied helm-release.yaml"
+
+      - name: 'Replace values in helm-release.yaml'
+        id: replace-values
+        run: |
+          team_namespace=${{ inputs.namespace }}
+          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.stg.adoreme.com"
+          tag="quay.io/adoreme/${{ github.event.repository.name }}:${{ env.tag }}"
+          filePath="cluster/teams/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
+          sed -i "s/namespace: NAMESPACE\b/namespace: $team_namespace/1" "$filePath"
+          echo "Replaced namespace with $team_namespace in helm-release.yaml"
+          sed -i "s/targetNamespace: TARGET_NAMESPACE\b/targetNamespace: $team_namespace/1" "$filePath"
+          echo "Replaced targetNamespace with $team_namespace in helm-release.yaml"
+          sed -i "s/domain: DOMAIN\b/domain: $domain/1" "$filePath"
+          echo "Replaced domain with $domain in helm-release.yaml"
+          sed -i "s#tag: TAG\b#tag: $hr_tag#1" "$filePath"
+          echo "Replaced tag with $tag in helm-release.yaml"
+
+      - name: 'Retry Step'
+        uses: nick-fields/retry@v2.9.0
+        with:
+          command: |
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            git add .
+            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
+            git push origin master
+          max_attempts: 12
+          timeout_seconds: 5
+          on_retry_command: |
+            echo "Retrying..."
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            git stash || true
+            git pull --no-ff --no-edit origin master
+            git stash pop || true
+            git add .
+            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
+            git push origin master

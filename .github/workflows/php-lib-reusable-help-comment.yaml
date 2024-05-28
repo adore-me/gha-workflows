@@ -1,0 +1,27 @@
+name: Help Comment
+permissions:
+  pull-requests: write
+on:
+  workflow_call:
+    secrets:
+      APP_ID:
+        required: true
+      GH_KEY:
+        required: true
+jobs:
+  comment:
+    name: Lib Help Comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create token
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.GH_KEY }}
+          owner: ${{ github.repository_owner }}
+      - uses: wow-actions/auto-comment@v1.1.2
+        name: Help Comment
+        with:
+          GITHUB_TOKEN: ${{ steps.gha-token.outputs.token }}
+          pullRequestOpened: ":wave: @{{ author }}\n\n**Versioning**\nBy default, the versioning is configured to bump the `patch` version of the script.  \nℹ If you need to bump the `major` or `minor` version you should label this `PR` with either one of:\n- `release:major`\n- `release:minor`"

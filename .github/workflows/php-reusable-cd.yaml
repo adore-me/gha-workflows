@@ -59,6 +59,15 @@ jobs:
         id: checkout
         uses: actions/checkout@v4.1.1
 
+      - name: 'Remove tests folder'
+        run:
+          if [ -d tests ]; then 
+            rm -rf tests; 
+            echo "Tests folder removed";
+          else
+            echo "No tests folder to remove";
+          fi
+
       - name: 'Create release'
         id: release
         uses: rymndhng/release-on-push-action@v0.28.0
