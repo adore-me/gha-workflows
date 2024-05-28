@@ -46,7 +46,7 @@ jobs:
         with:
           repository: adore-me/kube-dev
           token: ${{ steps.gha-token.outputs.token }}
-          ref: master
+          ref: main
 
       - if: github.ref_name == github.event.repository.default_branch
         name: 'Checkout Kube-prod as submodule'
@@ -205,7 +205,7 @@ jobs:
             git config --global user.name "github-actions[bot]"
             git add .
             git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
-            git push origin master
+            git push origin main
           max_attempts: 12
           timeout_seconds: 5
           on_retry_command: |
@@ -213,8 +213,8 @@ jobs:
             git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git config --global user.name "github-actions[bot]"
             git stash || true
-            git pull --no-ff --no-edit origin master
+            git pull --no-ff --no-edit origin main
             git stash pop || true
             git add .
             git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
-            git push origin master
+            git push origin main
