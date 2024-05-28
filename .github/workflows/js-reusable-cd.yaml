@@ -76,7 +76,6 @@ jobs:
       - uses: actions/setup-node@v4.0.2
         with:
           node-version: ${{ steps.config.outputs.nodeVersion }}
-          cache: npm
 
       - name: Provision app config
         id: provision-app-config
