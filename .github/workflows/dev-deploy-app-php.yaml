@@ -168,7 +168,7 @@ jobs:
         id: replace-values
         run: |
           team_namespace=${{ inputs.namespace }}
-          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.stg.adoreme.com"
+          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
           if [ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ] ; then
             tag='${{ steps.set-tag-prod.outputs.tag }} # {"\$imagepolicy": "flux-system:${{ github.event.repository.name }}:tag"}'
           else
