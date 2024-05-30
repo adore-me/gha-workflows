@@ -99,8 +99,8 @@ jobs:
 
             cp -R ${{ github.event.repository.name }}/env/staging.env.json ${{ github.event.repository.name }}/env/env.json
             version=${{ github.ref_name }}-$time
-            gwmain_api_domain=gw-main-${{ inputs.namespace }}.stg.adoreme.com
-            gwservices_api_domain=gw-services-${{ inputs.namespace }}.stg.adoreme.com
+            gwmain_api_domain=gw-main-${{ inputs.namespace }}.dev.adoreme.com
+            gwservices_api_domain=gw-services-${{ inputs.namespace }}.dev.adoreme.com
             file="${{ github.event.repository.name }}/env/env.json"
             sed -i "s/VERSION\b/$version/1" "$file"
             echo "Replaced version with $version"
@@ -157,7 +157,7 @@ jobs:
         id: copy-helm-release
         run: |
           team_namespace=${{ inputs.namespace }}
-          path="cluster/teams/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}"
+          path="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}"
           basePath="resources/base/apps/${{ github.event.repository.name }}"
           mkdir -p $path
           echo "Created folder $path"
@@ -168,9 +168,9 @@ jobs:
         id: replace-values
         run: |
           team_namespace=${{ inputs.namespace }}
-          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.stg.adoreme.com"
+          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
           tag="quay.io/adoreme/${{ github.event.repository.name }}:${{ env.tag }}"
-          filePath="cluster/teams/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
+          filePath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
           sed -i "s/namespace: NAMESPACE\b/namespace: $team_namespace/1" "$filePath"
           echo "Replaced namespace with $team_namespace in helm-release.yaml"
           sed -i "s/targetNamespace: TARGET_NAMESPACE\b/targetNamespace: $team_namespace/1" "$filePath"

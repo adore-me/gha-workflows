@@ -40,4 +40,4 @@ jobs:
           user_email: 'ops+jenkins@adoreme.com'
           user_name: 'AdoreMeJenkins'
           commit_message: 'Update ${{ github.event.repository.name }}-env'
-          destination_branch: 'master'
+          destination_branch: 'main'
