@@ -109,10 +109,17 @@ jobs:
           file-path: ${{ github.event.repository.name }}/ci/config.yaml
 
       - if: (github.ref_name != github.event.repository.default_branch) || (steps.set-tag-prod.outputs.dev-tag == 'true')
+        name: 'Create short sha'
+        uses: benjlevesque/short-sha@v3.0
+        id: short-sha
+        with:
+          length: 6
+
+      - if: (github.ref_name != github.event.repository.default_branch) || (steps.set-tag-prod.outputs.dev-tag == 'true')
         name: 'Set TAG'
         id: set-tag
         run: |
-          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ github.sha }}"
+          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ steps.short-sha.outputs.short_sha }}"
           echo "Tag is: $tag" 
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
