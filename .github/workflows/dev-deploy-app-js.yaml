@@ -179,6 +179,7 @@ jobs:
           echo "Replaced domain with $domain in helm-release.yaml"
           sed -i "s#tag: TAG\b#tag: $hr_tag#1" "$filePath"
           echo "Replaced tag with $tag in helm-release.yaml"
+          cat helm_release.yaml 
 
       - name: 'Retry Step'
         uses: nick-fields/retry@v2.9.0
