@@ -171,15 +171,14 @@ jobs:
           domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
           tag="quay.io/adoreme/${{ github.event.repository.name }}:${{ env.tag }}"
           filePath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
-          sed -i "s/namespace: NAMESPACE\b/namespace: $team_namespace/1" "$filePath"
+          sed -i "s/NAMESPACE\b/$team_namespace/1" "$filePath"
           echo "Replaced namespace with $team_namespace in helm-release.yaml"
-          sed -i "s/targetNamespace: TARGET_NAMESPACE\b/targetNamespace: $team_namespace/1" "$filePath"
+          sed -i "s/TARGET_NAMESPACE\b/$team_namespace/1" "$filePath"
           echo "Replaced targetNamespace with $team_namespace in helm-release.yaml"
-          sed -i "s/domain: DOMAIN\b/domain: $domain/1" "$filePath"
+          sed -i "s/DOMAIN\b/$domain/1" "$filePath"
           echo "Replaced domain with $domain in helm-release.yaml"
-          sed -i "s#tag: TAG\b#tag: $hr_tag#1" "$filePath"
+          sed -i "s#TAG\b#$tag#1" "$filePath"
           echo "Replaced tag with $tag in helm-release.yaml"
-          cat helm_release.yaml 
 
       - name: 'Retry Step'
         uses: nick-fields/retry@v2.9.0
