@@ -125,10 +125,16 @@ jobs:
         with:
           file-path: ${{ github.event.repository.name }}/ci/config.yaml
 
+      - name: 'Create short sha'
+        uses: benjlevesque/short-sha@v3.0
+        id: short-sha
+        with:
+          length: 6
+
       - name: 'Set TAG'
         id: set-tag
         run: |
-          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ github.sha }}"
+          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ steps.short-sha.outputs.short_sha }}"
           echo tag=$tag >> $GITHUB_ENV
 
       - name: 'Docker build & push image'
