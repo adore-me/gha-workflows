@@ -1,7 +1,7 @@
-name: Deploy application to dev namespace
+name: 'Deploy app to QA environments'
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       namespace:
         description: 'namespace:'
