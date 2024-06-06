@@ -119,7 +119,7 @@ jobs:
         name: 'Set TAG'
         id: set-tag
         run: |
-          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ steps.short-sha.outputs.short_sha }}"
+          tag="$(echo "${{ github.ref_name }}" | sed -e 's/[^[:alnum:]]/_/g')-${{ steps.short-sha.outputs.sha }}"
           echo "Tag is: $tag" 
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
