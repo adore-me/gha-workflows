@@ -21,8 +21,6 @@ on:
         required: true
       QUAY_PASSWORD:
         required: true
-      GH_TOKEN:
-        required: true
 
 concurrency:
   group: ${{ inputs.namespace }}
