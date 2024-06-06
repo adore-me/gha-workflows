@@ -85,19 +85,35 @@ jobs:
 
         #TODO: check if sealed secrets are the same for all go apps
 
-      - name: 'Create release template'
+      - name: 'Copy helm-release.yaml to teams folder'
+        id: copy-helm-release
         run: |
-          echo "Creating release folder: ${{ env.NAMESPACE }}"
-          release_folder="apps/namespaces/${{ env.NAMESPACE }}/releases"
-          mkdir -p $release_folder
+          team_namespace=${{ inputs.namespace }}
+          path="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}"
+          basePath="resources/base/apps/${{ github.event.repository.name }}"
+          mkdir -p $path
+          echo "Created folder $path"
+          cp $basePath/helm-release.yaml $path/helm-release.yaml
+          echo "Copied helm-release.yaml"
+
+      - name: 'Replace values in helm-release.yaml'
+        id: replace-values
+        run: |
           team_namespace=${{ inputs.namespace }}
           domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
-          cp -R resources/base/apps/${{ github.event.repository.name }} $release_folder
-          sed -i 's/TARGET_NAMESPACE/$team_namespace/1' $release_folder/${{ github.event.repository.name }}/helm-release.yaml
-          sed -i 's/NAMESPACE/$team_namespace/1'        $release_folder/${{ github.event.repository.name }}/helm-release.yaml
-          sed -i 's/DOMAIN/$domain/1'              $release_folder/${{ github.event.repository.name }}/helm-release.yaml
-          sed -i 's/TAG/"${{ env.tag }}"/1'                  $release_folder/${{ github.event.repository.name }}/helm-release.yaml
-          sed -i 's/TARGET_NAMESPACE/$team_namespace/1' $release_folder/${{ github.event.repository.name }}/sealed-secrets/${{ github.event.repository.name }}-authkeys-sealed.yaml
+          tag="${{ env.tag }}"
+          path="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}"
+          filePath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
+          sed -i "s/NAMESPACE\b/$team_namespace/1" "$filePath"
+          echo "Replaced namespace with $team_namespace in helm-release.yaml"
+          sed -i "s/TARGET_NAMESPACE\b/$team_namespace/1" "$filePath"
+          echo "Replaced targetNamespace with $team_namespace in helm-release.yaml"
+          sed -i "s/DOMAIN\b/$domain/1" "$filePath"
+          echo "Replaced domain with $domain in helm-release.yaml"
+          sed -i "s#TAG\b#$tag#1" "$filePath"
+          echo "Replaced tag with $tag in helm-release.yaml"
+          sed -i "s/TARGET_NAMESPACE\b/$team_namespace/1" "$path/sealed-secrets/${{ github.event.repository.name }}-authkeys-sealed.yaml"
+          echo "Replaced targetNamespace with $team_namespace in ${{ github.event.repository.name }}-authkeys-sealed.yaml"
 
       - name: 'Commit and Retry Step'
         uses: nick-fields/retry@v2.9.0
