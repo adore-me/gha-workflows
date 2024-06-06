@@ -1,0 +1,145 @@
+name: Deploy application to dev namespace
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: 'namespace:'
+        type: string
+        required: true
+        default: ''
+      identifier:
+        description: 'mass-deploy-identifier: '
+        type: string
+        required: false
+    secrets:
+      GH_KEY:
+        required: true
+      APP_ID:
+        required: true
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      GH_TOKEN:
+        required: true
+
+concurrency:
+  group: ${{ inputs.namespace }}
+run-name: ${{ github.event_name == 'workflow_dispatch' && tojson(inputs) }}
+jobs:
+  reusable:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: ${{ github.event.inputs.namespace }}
+      DOMAIN: ms-am-catalog-${{ github.event.inputs.namespace }}.dev.adoreme.com
+      TAG: ${{ needs.build.outputs.tag }}
+      IMAGE_NAME: quay.io/adoreme/${{ secrets.GCP_APP_NAME }}
+    steps:
+      - name: 'Create token'
+        id: gha-token
+        uses: actions/create-github-app-token@v1.9.0
+        with:
+          app-id: ${{ secrets.AM_GHA_APP_ID }}
+          private-key: ${{ secrets.AM_GHA_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: 'Checkout kube-dev'
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: adore-me/kube-dev
+          token: ${{ steps.gha-token.outputs.token }}
+          ref: main
+
+      - name: 'Checkout ${{ github.event.repository.name }}'
+        uses: actions/checkout@v4.1.1
+        with:
+          repository: adore-me/${{ github.event.repository.name }}
+          token: ${{ steps.gha-token.outputs.token }}
+          submodules: true
+          path: ${{ github.event.repository.name }}
+          ref: ${{ github.ref }}
+
+      - name: 'Set tag'
+        id: set-tag
+        run: |
+          printf -v tag  "dev-%s-%s-%s"  "$(date +'%m%d%Y')" "$(git rev-parse --short HEAD)" "$(git rev-list --count HEAD)"
+          echo "::set-output name=tag::$tag"
+
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v3.3.0
+
+      - name: 'Login to Quay'
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+
+      - name: 'Build and push'
+        uses: docker/build-push-action@v5.0.0
+        with:
+          build-args: |
+            target=staging
+          context: .
+          push: true
+          tags: '${{env.IMAGE_NAME}}:${{ steps.set-tag.outputs.tag }}'
+
+      - name: 'Remove ${{ github.event.repository.name }} repo'
+        run: |
+          rm -rf ${{ github.event.repository.name }}
+
+        #TODO: check if sealed secrets are the same for all go apps
+
+      - name: 'Create release template'
+        run: |
+          echo "Creating release folder: ${{ env.NAMESPACE }}"
+          release_folder="apps/namespaces/${{ env.NAMESPACE }}/releases"
+          mkdir -p $release_folder
+          cp -R resources/base/apps/${{ github.event.repository.name }} $release_folder
+          
+          sed -i 's/TARGET_NAMESPACE/${{ env.NAMESPACE }}/1' $release_folder/${{ github.event.repository.name }}/sealed-secrets/${{ github.event.repository.name }}-authkeys-sealed.yaml
+          
+          sed -i 's/TARGET_NAMESPACE/${{ env.NAMESPACE }}/1' $release_folder/${{ github.event.repository.name }}/helm-release.yaml
+          sed -i 's/NAMESPACE/${{ env.NAMESPACE }}/1'        $release_folder/${{ github.event.repository.name }}/helm-release.yaml
+          sed -i 's/DOMAIN/${{ env.DOMAIN }}/1'              $release_folder/${{ github.event.repository.name }}/helm-release.yaml
+          sed -i 's/TAG/"${{ env.TAG }}"/1'                  $release_folder/${{ github.event.repository.name }}/helm-release.yaml
+          sed -i 's/TARGET_NAMESPACE/${{ env.NAMESPACE }}/1' $release_folder/${{ github.event.repository.name }}/sealed-secrets/${{ github.event.repository.name }}-authkeys-sealed.yaml
+
+      - name: 'Commit and Retry Step'
+        uses: nick-fields/retry@v2.9.0
+        with:
+          command: |
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            git add .
+            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
+            git push origin main
+          max_attempts: 12
+          timeout_seconds: 5
+          on_retry_command: |
+            echo "Retrying..."
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --global user.name "github-actions[bot]"
+            git stash || true
+            git pull --no-ff --no-edit origin main
+            git stash pop || true
+            git add .
+            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
+            git push origin main
+
+      - name: 'Send slack notification'
+        uses: 8398a7/action-slack@v3
+        with:
+          job_name: Deploy
+          status: ${{ job.status }}
+          custom_payload: |
+            {
+              attachments: [{
+                color: 'good',
+                text: `${{ env.DOMAIN }}`,
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
