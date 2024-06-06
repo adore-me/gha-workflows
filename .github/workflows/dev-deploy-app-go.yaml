@@ -75,7 +75,7 @@ jobs:
         with:
           build-args: |
             target=staging
-          context: .
+          context: ./${{ github.event.repository.name }}
           push: true
           tags: 'quay.io/adoreme/${{ github.event.repository.name }}:${{ env.tag }}'
 
@@ -89,13 +89,10 @@ jobs:
         run: |
           echo "Creating release folder: ${{ env.NAMESPACE }}"
           release_folder="apps/namespaces/${{ env.NAMESPACE }}/releases"
+          mkdir -p $release_folder
           team_namespace=${{ inputs.namespace }}
           domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
-          mkdir -p $release_folder
           cp -R resources/base/apps/${{ github.event.repository.name }} $release_folder
-          
-          sed -i 's/TARGET_NAMESPACE/$team_namespace/1' $release_folder/${{ github.event.repository.name }}/sealed-secrets/${{ github.event.repository.name }}-authkeys-sealed.yaml
-          
           sed -i 's/TARGET_NAMESPACE/$team_namespace/1' $release_folder/${{ github.event.repository.name }}/helm-release.yaml
           sed -i 's/NAMESPACE/$team_namespace/1'        $release_folder/${{ github.event.repository.name }}/helm-release.yaml
           sed -i 's/DOMAIN/$domain/1'              $release_folder/${{ github.event.repository.name }}/helm-release.yaml
