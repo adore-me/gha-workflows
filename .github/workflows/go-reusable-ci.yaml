@@ -21,7 +21,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout ${{ github.repository }}'
+      - name: 'Checkout ${{ github.event.repository.name }}'
         uses: actions/checkout@v4
 
       - name: 'Setup go'
