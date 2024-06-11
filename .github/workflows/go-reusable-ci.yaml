@@ -3,7 +3,7 @@ name: 'Reusable CI workflow for go apps'
 on:
   workflow_call:
     inputs:
-      runTests:
+      run-tests:
         description: 'Run tests'
         required: false
         type: boolean
@@ -43,7 +43,7 @@ jobs:
         name: Run tests
         run: cd tests && go test -v
 
-      - name: Send slack notification
+      - name: 'Send slack notification'
         uses: 8398a7/action-slack@v3
         with:
           job_name: Test
