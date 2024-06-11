@@ -39,7 +39,7 @@ jobs:
         run: |
           go vet .
 
-      - if: ${{ github.event.inputs.run-tests == true }}
+      - if: ${{ inputs.run-tests }}
         name: 'Run tests'
         run: cd tests && go test -v
 
