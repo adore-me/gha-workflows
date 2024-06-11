@@ -7,7 +7,7 @@ on:
         description: 'Run tests'
         required: true
         type: boolean
-        default: false
+        default: true
     secrets:
         SLACK_WEBHOOK_URL:
           required: true
