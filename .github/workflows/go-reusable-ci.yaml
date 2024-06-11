@@ -39,7 +39,7 @@ jobs:
         run: |
           go vet .
 
-      - if: ${{ inputs.run-tests }}
+      - if: inputs.run-tests == true
         name: 'Run tests'
         run: cd tests && go test -v
 
