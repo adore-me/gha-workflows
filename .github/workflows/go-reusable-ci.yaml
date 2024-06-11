@@ -9,8 +9,8 @@ on:
         type: boolean
         default: true
     secrets:
-        SLACK_WEBHOOK_URL:
-          required: true
+#        SLACK_WEBHOOK_URL:
+#          required: true
         QUAY_USER:
           required: true
         QUAY_PASSWORD:
