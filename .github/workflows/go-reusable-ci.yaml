@@ -9,8 +9,8 @@ on:
         type: boolean
         default: true
     secrets:
-#        SLACK_WEBHOOK_URL:
-#          required: true
+        SLACK_WEBHOOK_URL:
+          required: true
         QUAY_USER:
           required: true
         QUAY_PASSWORD:
@@ -43,15 +43,15 @@ jobs:
         name: 'Run tests'
         run: cd tests && go test -v
 
-#      - name: 'Send slack notification'
-#        uses: 8398a7/action-slack@v3
-#        with:
-#          job_name: Test
-#          status: ${{ job.status }}
-#          fields: message,commit,author,action,eventName,ref,workflow,job,took
-#        env:
-#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-#        if: always()
+      - name: 'Send slack notification'
+        uses: 8398a7/action-slack@v3
+        with:
+          job_name: Test
+          status: ${{ job.status }}
+          fields: message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
 
   build:
     name: Build
