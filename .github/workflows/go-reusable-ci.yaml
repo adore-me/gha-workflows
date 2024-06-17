@@ -75,9 +75,9 @@ jobs:
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE ${{ inputs.database }};"
           if ${{ inputs.app-port }} != "" ; then
-            printf "app:\n  port: ${{ inputs.app-port }}\ndb:\n  host: localhost\n  port: ${{ inputs.database-port }} \n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
+            printf "app:\n  port: ${{ inputs.app-port }}\ndb:\n  host: localhost\n  port: ${{ inputs.database-port }}\n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
           else
-            printf "db:\n  host: localhost\n  port: ${{ inputs.database-port }} \n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
+            printf "db:\n  host: localhost\n  port: ${{ inputs.database-port }}\n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
           fi
 
       - if: inputs.run-migrations == true
