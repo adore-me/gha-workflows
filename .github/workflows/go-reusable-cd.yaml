@@ -65,3 +65,13 @@ jobs:
             quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
             us.gcr.io/${{ secrets.PROD_GCP_PROJECT_ID }}/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }} 
 
+      - name: 'Send slack notification'
+        uses: 8398a7/action-slack@v3
+        with:
+          job_name: Deploy
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
