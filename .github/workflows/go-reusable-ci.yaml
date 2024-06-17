@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: ''
+      app-port:
+        description: 'Application port'
+        required: false
+        type: string
+        default: ''
       database-port:
         description: 'Database port'
         required: false
@@ -69,7 +74,11 @@ jobs:
         run: |
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE ${{ inputs.database }};"
-          printf "db:\n  host: localhost\n  port: ${{ inputs.database-port }} \n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
+          if ${{ inputs.app-port }} != "" ; then
+            printf "app:\n  port: ${{ inputs.app-port }}\ndb:\n  host: localhost\n  port: ${{ inputs.database-port }} \n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
+          else
+            printf "db:\n  host: localhost\n  port: ${{ inputs.database-port }} \n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
+          fi
 
       - if: inputs.run-migrations == true
         name: 'Run migrations'
