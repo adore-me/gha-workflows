@@ -8,6 +8,31 @@ on:
         required: true
         type: boolean
         default: false
+      enable-mysql:
+        description: 'Enable MySql for tests'
+        required: true
+        type: boolean
+        default: false
+      database:
+        description: 'Database name'
+        required: true
+        type: string
+        default: ''
+      database-port:
+        description: 'Database port'
+        required: true
+        type: string
+        default: ''
+      run-migrations:
+        description: 'Run migrations'
+        required: true
+        type: boolean
+        default: false
+      run-seeder:
+        description: 'Run seeder'
+        required: true
+        type: boolean
+        default: false
     secrets:
         SLACK_WEBHOOK_URL:
           required: true
@@ -35,13 +60,24 @@ jobs:
           go mod tidy
           go build .
 
-      - name: 'Run vet & lint'
+      - name: 'Run vet'
         run: |
           go vet .
 
-      - if: inputs.run-tests == true
-        name: 'Run tests'
-        run: cd tests && go test -v
+      - if: inputs.enable-mysql == true
+        name: 'Test database setup'
+        run: |
+          sudo systemctl start mysql.service
+          mysql -uroot -proot -e "CREATE DATABASE ${{ inputs.database }};"
+          printf "db:\n  host: localhost\n  port: ${{ inputs.database-port }} \n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
+
+      - if: inputs.run-migrations == true
+        name: 'Run migrations'
+        run: go run main.go migrate up --config=config.testing.yaml
+
+      - if: inputs.run-seeder == true
+        name: 'Run seeder'
+        run: go run main.go seed seed --config=config.testing.yaml
 
       - name: 'Send slack notification'
         uses: 8398a7/action-slack@v3
@@ -83,4 +119,3 @@ jobs:
           context: .
           push: true
           tags: 'quay.io/adoreme/${{ github.event.repository.name }}:${{ env.tag }}'
-
