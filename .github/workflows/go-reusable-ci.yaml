@@ -18,16 +18,6 @@ on:
         required: false
         type: string
         default: ''
-      app-port:
-        description: 'Application port'
-        required: false
-        type: string
-        default: ''
-      database-port:
-        description: 'Database port'
-        required: false
-        type: string
-        default: ''
       run-migrations:
         description: 'Run migrations'
         required: false
@@ -74,19 +64,14 @@ jobs:
         run: |
           sudo systemctl start mysql.service
           mysql -uroot -proot -e "CREATE DATABASE ${{ inputs.database }};"
-          if ${{ inputs.app-port }} != "" ; then
-            printf "app:\n  port: ${{ inputs.app-port }}\ndb:\n  host: localhost\n  port: ${{ inputs.database-port }}\n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
-          else
-            printf "db:\n  host: localhost\n  port: ${{ inputs.database-port }}\n  user: root\n  password: root\n  schema: ${{ inputs.database }}" > config.testing.yaml
-          fi
 
       - if: inputs.run-migrations == true
         name: 'Run migrations'
-        run: go run main.go migrate up --config=config.testing.yaml
+        run: go run main.go migrate up --config=config.ci.yaml
 
       - if: inputs.run-seeder == true
         name: 'Run seeder'
-        run: go run main.go seed seed --config=config.testing.yaml
+        run: go run main.go seed seed --config=config.ci.yaml
 
       - name: 'Send slack notification'
         uses: 8398a7/action-slack@v3
