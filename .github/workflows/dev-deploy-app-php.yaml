@@ -204,24 +204,10 @@ jobs:
             echo "Replaced namespace with $team_namespace in $file"
           done
 
-      - name: 'Retry Step'
-        uses: nick-fields/retry@v2.9.0
+      - name: Commit to kube-dev
+        uses: EndBug/add-and-commit@v7
         with:
-          command: |
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-            git add .
-            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
-            git push origin main
-          max_attempts: 12
-          timeout_seconds: 5
-          on_retry_command: |
-            echo "Retrying..."
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-            git stash || true
-            git pull --no-ff --no-edit origin main
-            git stash pop || true
-            git add .
-            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
-            git push origin main
+          author_name: github-actions[bot]
+          author_email: 41898282+github-actions[bot]@users.noreply.github.com
+          branch: main
+          message: "Creating release: ${{ inputs.namespace }} - ${{ github.event.repository.name }}"
