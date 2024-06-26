@@ -203,12 +203,11 @@ jobs:
             sed -i "s/namespace: TARGET_NAMESPACE\b/namespace: $team_namespace/1" "$file"
             echo "Replaced namespace with $team_namespace in $file"
           done
+ 
+          echo "tag=$tag" >> "$GITHUB_ENV"
 
       - name: pull-request to kube-dev
-        run: |
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          
+        run: |         
           status=$(git status --porcelain)
           if [ -z "$status" ]; then
             # If the status is empty, there is nothing to commit
@@ -216,14 +215,14 @@ jobs:
             exit 0
           fi
           
-          branch="deploy-${{ inputs.namespace }}-${{ github.event.repository.name }}-${{ steps.set-tag.outputs.tag }}-$(date +'%Y%m%d%H%M%S')"
+          branch="deploy-${{ inputs.namespace }}-${{ github.event.repository.name }}-$tag-$(date +'%Y%m%d%H%M%S')"
           git checkout -b $branch
           git add apps/namespaces/*
-          git commit --all -m "Deploy ${{ github.event.repository.name }} in ${{ inputs.namespace }} with tag ${{ steps.set-tag.outputs.tag }}"
+          git commit --all -m "Deploy ${{ github.event.repository.name }} in ${{ inputs.namespace }} with tag $tag"
           git push --set-upstream origin $branch
          
           gh pr create --base main \
-            --title "Deploy ${{ github.event.repository.name }} with ${{ steps.set-tag.outputs.tag }} on ${{ inputs.namespace }}" \
+            --title "Deploy ${{ github.event.repository.name }} with $tag on ${{ inputs.namespace }}" \
             --body 'PR triggered by [${{ github.event.repository.name }}](https://github.com/adore-me/${{ github.event.repository.name }}/blob/${{ github.ref }}/.github/workflows/deploy-app-to-dev-ns.yaml)'
           
           gh pr merge --rebase
