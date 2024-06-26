@@ -215,7 +215,7 @@ jobs:
             exit 0
           fi
           
-          branch="deploy-${{ inputs.namespace }}-${{ github.event.repository.name }}-$tag-$(date +'%Y%m%d%H%M%S')"
+          branch="deploy-${{ inputs.namespace }}-${{ github.event.repository.name }}-$(date +'%Y%m%d%H%M%S')"
           git checkout -b $branch
           git add apps/namespaces/*
           git commit --all -m "Deploy ${{ github.event.repository.name }} in ${{ inputs.namespace }} with tag $tag"
