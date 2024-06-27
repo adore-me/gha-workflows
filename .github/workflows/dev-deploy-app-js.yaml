@@ -208,6 +208,6 @@ jobs:
             --title "Deploy ${{ github.event.repository.name }} with $tag on ${{ inputs.namespace }}" \
             --body 'PR triggered by [${{ github.event.repository.name }}](https://github.com/adore-me/${{ github.event.repository.name }}/blob/${{ github.ref }}/.github/workflows/deploy-app-to-dev-ns.yaml)'
           
-          gh pr merge --rebase --delete-branch
+          gh pr merge --rebase
         env:
           GH_TOKEN: ${{ steps.gha-token.outputs.token }}
