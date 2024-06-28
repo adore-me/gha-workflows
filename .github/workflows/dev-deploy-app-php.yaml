@@ -226,7 +226,7 @@ jobs:
          
           gh pr create --base main \
             --title "Deploy ${{ github.event.repository.name }} with $tag on ${{ inputs.namespace }}" \
-            --body 'PR triggered by repository: [${{ github.event.repository.name }}](https://github.com/adore-me/${{ github.event.repository.name }}/blob/${{ github.ref }}/.github/workflows/deploy-app-to-dev-ns.yaml) \nWorkflow: [deploy-app-to-dev-ns.yaml](https://github.com/adore-me/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }})'
+            --body 'PR triggered by repository: [${{ github.event.repository.name }}](https://github.com/adore-me/${{ github.event.repository.name }}/blob/${{ github.ref }}/.github/workflows/deploy-app-to-dev-ns.yaml) <br>Workflow run: [deploy-app-to-dev-ns.yaml](https://github.com/adore-me/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }})'
           
           gh pr merge --rebase
         env:
