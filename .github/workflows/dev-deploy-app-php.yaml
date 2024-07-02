@@ -186,11 +186,9 @@ jobs:
           tag=$tag
           nginxTag="${{ steps.config.outputs.image-tag }}"
           filePath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
-          sed -i "s/namespace: NAMESPACE\b/namespace: $team_namespace/1" "$filePath"
+          sed -i "s/NAMESPACE\b/$team_namespace/1" "$filePath"
           echo "Replaced namespace with $team_namespace in helm-release.yaml"
-          sed -i "s/targetNamespace: TARGET_NAMESPACE\b/targetNamespace: $team_namespace/1" "$filePath"
-          echo "Replaced targetNamespace with $team_namespace in helm-release.yaml"
-          sed -i "s/domain: DOMAIN\b/domain: $domain/1" "$filePath"
+          sed -i "s/DOMAIN\b/$domain/1" "$filePath"
           echo "Replaced domain with $domain in helm-release.yaml"
           sed -i "s/tag: TAG\b/tag: $tag/1" "$filePath"
           echo "Replaced tag with $tag in helm-release.yaml"
@@ -206,7 +204,7 @@ jobs:
             echo "Replaced namespace with $team_namespace in $file"
           done
 
-      - name: pull-request to kube-dev
+      - name: 'Pull-request to kube-dev'
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"

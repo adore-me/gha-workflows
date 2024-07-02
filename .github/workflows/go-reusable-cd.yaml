@@ -1,0 +1,77 @@
+name: 'Reusable CD workflow for go apps'
+
+on:
+  workflow_call:
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: true
+      QUAY_USER:
+        required: true
+      QUAY_PASSWORD:
+        required: true
+      GCR_CREDENTIALS:
+        required: true
+      PROD_GCP_PROJECT_ID:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout ${{ github.event.repository.name }}'
+        uses: actions/checkout@v4
+
+      - name: 'Create new release version'
+        id: release
+        uses: rymndhng/release-on-push-action@v0.28.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          use_github_release_notes: true
+          bump_version_scheme: patch
+          tag_prefix: v
+
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v3.3.0
+
+      - name: 'Login to Quay'
+        uses: docker/login-action@v3.0.0
+        with:
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+          registry: quay.io
+
+      - name: 'Login backup Docker registry (GCR)'
+        id: login-backup-gcr
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: us.gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_CREDENTIALS }}
+
+      - name: 'Docker build & push image'
+        id: docker-build-push
+        uses: docker/build-push-action@v5.4.0
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          labels: |
+            app.version=${{ steps.release.outputs.tag_name }}
+            git.commit.sha=${{ github.sha }}
+            image.type=production
+          tags: |
+            quay.io/adoreme/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }}
+            us.gcr.io/${{ secrets.PROD_GCP_PROJECT_ID }}/${{ github.event.repository.name }}:${{ steps.release.outputs.tag_name }} 
+
+      - name: 'Send slack notification'
+        uses: 8398a7/action-slack@v3
+        with:
+          job_name: Deploy
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
+
