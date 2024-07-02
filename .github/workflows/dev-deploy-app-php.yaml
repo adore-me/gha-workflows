@@ -178,8 +178,10 @@ jobs:
           domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
           if [ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ] ; then
             tag='${{ steps.set-tag-prod.outputs.tag }} # {"\$imagepolicy": "flux-system:${{ github.event.repository.name }}:tag"}'
+            echo "tag=${{ steps.set-tag-prod.outputs.tag }}" >> "$GITHUB_ENV"
           else
             tag="${{ steps.set-tag.outputs.tag }}"
+            echo "tag=$tag" >> "$GITHUB_ENV"
           fi
           tag=$tag
           nginxTag="${{ steps.config.outputs.image-tag }}"
@@ -202,24 +204,28 @@ jobs:
             echo "Replaced namespace with $team_namespace in $file"
           done
 
-      - name: 'Retry Step'
-        uses: nick-fields/retry@v2.9.0
-        with:
-          command: |
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-            git add .
-            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
-            git push origin main
-          max_attempts: 12
-          timeout_seconds: 5
-          on_retry_command: |
-            echo "Retrying..."
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --global user.name "github-actions[bot]"
-            git stash || true
-            git pull --no-ff --no-edit origin main
-            git stash pop || true
-            git add .
-            git commit -m "Deploy ${{ github.event.repository.name }} to ${{ inputs.namespace }}"
-            git push origin main
+      - name: pull-request to kube-dev
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+          status=$(git status --porcelain)
+          if [ -z "$status" ]; then
+            # If the status is empty, there is nothing to commit
+            echo "Nothing to commit."
+            exit 0
+          fi
+          
+          branch="deploy-${{ inputs.namespace }}-${{ github.event.repository.name }}-$(date +'%Y%m%d%H%M%S')"
+          git checkout -b $branch
+          git add apps/namespaces/*
+          git commit --all -m "Deploy ${{ github.event.repository.name }} in ${{ inputs.namespace }} with tag $tag"
+          git push --set-upstream origin $branch
+         
+          gh pr create --base main \
+            --title "Deploy ${{ github.event.repository.name }} with $tag on ${{ inputs.namespace }}" \
+            --body 'PR triggered by repository: [${{ github.event.repository.name }}](https://github.com/adore-me/${{ github.event.repository.name }}/blob/${{ github.ref }}/.github/workflows/deploy-app-to-dev-ns.yaml) <br>Workflow run: [deploy-app-to-dev-ns.yaml](https://github.com/adore-me/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }})'
+          
+          gh pr merge --rebase
+        env:
+          GH_TOKEN: ${{ steps.gha-token.outputs.token }}
