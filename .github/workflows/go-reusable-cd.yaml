@@ -74,4 +74,32 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: always()
+  create-jira-ticket:
+    name: 'Create JIRA ticket'
+    needs: [ release ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Find out if the update is made from a pull request; get the PR number'
+        uses: actions/github-script@v6.4.1
+        if: inputs.create-jira-tickets
+        id: pr-id
+        with:
+          result-encoding: string
+          script: |
+            const msg = (context.payload.head_commit.message).match(/#\d+/);
+            let pr= Array.isArray(msg) ? parseInt(msg[0].replace('#','')) : 0
+            console.log("this is pr number: " + pr)
+            return pr
+
+      - name: 'Create jira tickets and link items, send deployment notification'
+        uses: adore-me/github-action-deploysbot@v1.0.3
+        if: inputs.create-jira-tickets && steps.pr-id.outputs.result > 0
+        with:
+          JIRA_USER: ${{ secrets.JIRA_USER }}
+          JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+          JIRA_URI: ${{ secrets.JIRA_URI }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PR_NUMBER: ${{ steps.pr-id.outputs.result }}
+          GH_TAG: ${{ needs.release.outputs.tag }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
