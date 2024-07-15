@@ -172,7 +172,7 @@ jobs:
             return pr
 
       - name: 'Create jira tickets and link items, send deployment notification'
-        uses: adore-me/github-action-deploysbot@v1.0.2
+        uses: adore-me/github-action-deploysbot@v1.0.3
         if: inputs.create-jira-tickets && steps.pr-id.outputs.result > 0
         with:
           JIRA_USER: ${{ secrets.JIRA_USER }}
