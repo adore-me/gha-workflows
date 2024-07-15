@@ -15,8 +15,8 @@ on:
         required: true
 
 jobs:
-  deploy:
-    name: Deploy
+  release:
+    name: Release new version
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout ${{ github.event.repository.name }}'
@@ -74,6 +74,8 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         if: always()
+    outputs:
+      tag: ${{ steps.release.outputs.tag_name }}
   create-jira-ticket:
     name: 'Create JIRA ticket'
     needs: [ release ]
