@@ -102,19 +102,19 @@ jobs:
         id: replace-values
         run: |
           team_namespace=${{ inputs.namespace }}
-          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
           tag="${{ env.tag }}"
           path="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}"
           filePath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
+          
           sed -i "s/NAMESPACE\b/$team_namespace/1" "$filePath"
           echo "Replaced namespace with $team_namespace in helm-release.yaml"
-          sed -i "s/DOMAIN\b/$domain/1" "$filePath"
-          echo "Replaced domain with $domain in helm-release.yaml"
+          
           sed -i "s#TAG\b#$tag#1" "$filePath"
           echo "Replaced tag with $tag in helm-release.yaml"
+          
           secretPath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/sealed-secrets"
           find "$secretPath" -type f -name "*.yaml" -print0 | while IFS= read -r -d $'\0' file; do
-            sed -i "s/namespace: TARGET_NAMESPACE\b/namespace: $team_namespace/1" "$file"
+            sed -i "s/namespace: NAMESPACE\b/namespace: $team_namespace/1" "$file"
             echo "Replaced namespace with $team_namespace in $file"
           done
 
