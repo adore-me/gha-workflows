@@ -177,7 +177,7 @@ jobs:
           tag="${{ env.tag }}"
           filePath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
           
-          sed -i "s/NAMESPACE\b/$team_namespace/1" "$filePath"
+          sed -i "s/SED_NAMESPACE\b/$team_namespace/1" "$filePath"
           echo "Replaced namespace with $team_namespace in helm-release.yaml"
 
           sed -i "s#TAG\b#$tag#1" "$filePath"
