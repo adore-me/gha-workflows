@@ -175,7 +175,6 @@ jobs:
         id: replace-values
         run: |
           team_namespace=${{ inputs.namespace }}
-          domain="${{ github.event.repository.name }}-${{ inputs.namespace }}.dev.adoreme.com"
           if [ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ] ; then
             tag='${{ steps.set-tag-prod.outputs.tag }} # {"\$imagepolicy": "flux-system:${{ github.event.repository.name }}:tag"}'
             echo "tag=${{ steps.set-tag-prod.outputs.tag }}" >> "$GITHUB_ENV"
@@ -186,21 +185,19 @@ jobs:
           tag=$tag
           nginxTag="${{ steps.config.outputs.image-tag }}"
           filePath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/helm-release.yaml"
+          
           sed -i "s/NAMESPACE\b/$team_namespace/1" "$filePath"
           echo "Replaced namespace with $team_namespace in helm-release.yaml"
-          sed -i "s/DOMAIN\b/$domain/1" "$filePath"
-          echo "Replaced domain with $domain in helm-release.yaml"
+
           sed -i "s/tag: TAG\b/tag: $tag/1" "$filePath"
           echo "Replaced tag with $tag in helm-release.yaml"
-          sed -i "s/\${POD_NAMESPACE}/$team_namespace/1" "$filePath"
-          echo "Replaced \${POD_NAMESPACE} variable with $team_namespace in $filePath"
-          sed -i "s/POD_NAMESPACE\b/ $team_namespace/1" "$filePath"
-          echo "Replaced POD_NAMESPACE with $team_namespace in $filePath"
+
           sed -i "/nginx:/,/tag:/ s/tag: .*/tag: $nginxTag/" "$filePath"
           echo "Replaced nginx tag with $nginxTag in $filePath"
+          
           secretPath="apps/namespaces/${{ inputs.namespace }}/releases/${{ github.event.repository.name }}/sealed-secrets"
           find "$secretPath" -type f -name "*.yaml" -print0 | while IFS= read -r -d $'\0' file; do
-            sed -i "s/namespace: TARGET_NAMESPACE\b/namespace: $team_namespace/1" "$file"
+            sed -i "s/namespace: NAMESPACE\b/namespace: $team_namespace/1" "$file"
             echo "Replaced namespace with $team_namespace in $file"
           done
 
