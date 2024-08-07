@@ -104,10 +104,19 @@ jobs:
             file="${{ github.event.repository.name }}/env/env.json"
             sed -i "s/VERSION\b/$version/1" "$file"
             echo "Replaced version with $version"
+            
+            sed -i "s/GWMAIN_SVC/gw-main-www/" "$file"
+            sed -i "s/API_DOMAIN\b/$gwmain_api_domain/" "$file"
             sed -i "s/GWMAIN_API_DOMAIN\b/$gwmain_api_domain/" "$file"
             echo "Replaced GWMAIN_API_DOMAIN with $gwmain_api_domain"
+          
+            sed -i "s/GWSERVICES_SVC/gw-services-www/" "$file"
             sed -i "s/GWSERVICES_API_DOMAIN\b/$gwservices_api_domain/" "$file"
             echo "Replaced GWSERVICES_API_DOMAIN with $gwservices_api_domain"
+          
+            sed -i "s/RETAIL_GW_API_DOMAIN\b/retail-gateway-${{ inputs.namespace }}.dev.adoreme.com/" "$file"
+            echo "Replaced RETAIL_GW_API_DOMAIN with retail-gateway-${{ inputs.namespace }}.dev.adoreme.com"
+            
           else
             echo -e "${BL}Info:${NC} No env file found"
           fi
